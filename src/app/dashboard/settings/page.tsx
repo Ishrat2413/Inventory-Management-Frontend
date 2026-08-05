@@ -8,11 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useChangePassword, getApiErrorMessage } from "@/hooks/queries/use-auth";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function SettingsPage() {
   const changePassword = useChangePassword();
   const [form, setForm] = React.useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [showCurrent, setShowCurrent] = React.useState(false);
+  const [showNew, setShowNew] = React.useState(false);
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,23 +48,63 @@ export default function SettingsPage() {
           <form onSubmit={handleSubmit} className="flex max-w-sm flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <Label>Current password</Label>
-              <Input
-                type="password"
-                value={form.currentPassword}
-                onChange={(e) => setForm((f) => ({ ...f, currentPassword: e.target.value }))}
-              />
+              <div className="relative">
+                <Input
+                  type={showCurrent ? "text" : "password"}
+                  value={form.currentPassword}
+                  onChange={(e) => setForm((f) => ({ ...f, currentPassword: e.target.value }))}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground cursor-pointer"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                >
+                  {showCurrent ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>New password</Label>
-              <Input type="password" value={form.newPassword} onChange={(e) => setForm((f) => ({ ...f, newPassword: e.target.value }))} />
+              <div className="relative">
+                <Input
+                  type={showNew ? "text" : "password"}
+                  value={form.newPassword}
+                  onChange={(e) => setForm((f) => ({ ...f, newPassword: e.target.value }))}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground cursor-pointer"
+                  onClick={() => setShowNew(!showNew)}
+                >
+                  {showNew ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Confirm new password</Label>
-              <Input
-                type="password"
-                value={form.confirmPassword}
-                onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
-              />
+              <div className="relative">
+                <Input
+                  type={showConfirm ? "text" : "password"}
+                  value={form.confirmPassword}
+                  onChange={(e) => setForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground cursor-pointer"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                >
+                  {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </Button>
+              </div>
             </div>
             <div>
               <Button type="submit" disabled={changePassword.isPending}>
