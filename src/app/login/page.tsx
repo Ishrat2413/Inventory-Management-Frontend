@@ -14,8 +14,8 @@ export default function LoginPage() {
       <LoginForm />
       <p className="text-muted-foreground mt-6 text-center text-sm">
         Don&apos;t have an account?{" "}
-        <a href="/login" className="text-primary font-medium hover:underline">
-          Contact your admin
+        <a href="/signup" className="text-primary font-medium hover:underline">
+          Sign up
         </a>
       </p>
     </AuthShell>

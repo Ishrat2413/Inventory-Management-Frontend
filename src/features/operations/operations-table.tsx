@@ -76,7 +76,7 @@ export function OperationsTable({
         <TableBody>
           {tasks.map((task) => (
             <TableRow key={task.id} className="cursor-pointer" onClick={() => setSelectedTask(task)}>
-              <TableCell className="max-w-[220px]">
+              <TableCell className="max-w-55">
                 <p className="truncate font-medium">{task.title}</p>
                 {task.description && <p className="text-muted-foreground truncate text-xs">{task.description}</p>}
               </TableCell>

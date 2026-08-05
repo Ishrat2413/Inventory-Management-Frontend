@@ -53,4 +53,10 @@ export function useChangePassword() {
   });
 }
 
+export function useRegister() {
+  return useMutation({
+    mutationFn: authService.register,
+  });
+}
+
 export { getApiErrorMessage };

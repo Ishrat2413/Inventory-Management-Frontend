@@ -25,4 +25,9 @@ export const authService = {
   changePassword: async (payload: { currentPassword: string; newPassword: string }) => {
     await apiClient.post("/auth/change-password", payload);
   },
+
+  register: async (payload: { email: string; password: string; name?: string; phone?: string; role?: 'ADMIN' | 'EMPLOYEE' }) => {
+    const { data } = await apiClient.post<ApiEnvelope<User>>("/auth/register", payload);
+    return data.data as User;
+  },
 };

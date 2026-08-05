@@ -5,43 +5,51 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { loginSchema, type LoginValues } from "@/lib/validations/auth";
-import { useLogin, getApiErrorMessage } from "@/hooks/queries/use-auth";
+import { registerSchema, type RegisterValues } from "@/lib/validations/auth";
+import { useRegister, getApiErrorMessage } from "@/hooks/queries/use-auth";
 
-export function LoginForm() {
+export function SignupForm() {
   const router = useRouter();
-  const loginMutation = useLogin();
+  const registerMutation = useRegister();
   const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
-  } = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "", remember: true },
+  } = useForm<RegisterValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { email: "", password: "", name: "", phone: "" },
   });
 
-  const onSubmit = (values: LoginValues) => {
-    loginMutation.mutate(
-      { email: values.email, password: values.password },
+  const onSubmit = (values: RegisterValues) => {
+    registerMutation.mutate(
+      {
+        email: values.email,
+        password: values.password,
+        name: values.name,
+        phone: values.phone || undefined,
+        role: "ADMIN", // Signups default to ADMIN for safety and system setup
+      },
       {
         onSuccess: () => {
-          toast.success("Signed in successfully", { description: "Redirecting to your dashboard…" });
-          router.push("/dashboard");
+          toast.success("Account registered!", {
+            description: "Your administrator account has been created. Please sign in.",
+          });
+          router.push("/login");
         },
         onError: (error) => {
-          toast.error("Sign in failed", { description: getApiErrorMessage(error, "Invalid email or password.") });
+          toast.error("Registration failed", {
+            description: getApiErrorMessage(error),
+          });
         },
-      },
+      }
     );
   };
 
@@ -55,7 +63,19 @@ export function LoginForm() {
       noValidate
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="name">Full Name</Label>
+        <Input
+          id="name"
+          placeholder="John Doe"
+          autoComplete="name"
+          aria-invalid={!!errors.name}
+          {...register("name")}
+        />
+        {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email">Email address</Label>
         <Input
           id="email"
           type="email"
@@ -68,18 +88,23 @@ export function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <a href="/forgot-password" className="text-primary text-xs font-medium hover:underline">
-            Forgot password?
-          </a>
-        </div>
+        <Label htmlFor="phone">Phone number (optional)</Label>
+        <Input
+          id="phone"
+          placeholder="+1 234 567 8901"
+          autoComplete="tel"
+          {...register("phone")}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="password">Password</Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
-            autoComplete="current-password"
+            autoComplete="new-password"
             aria-invalid={!!errors.password}
             className="pr-10"
             {...register("password")}
@@ -97,16 +122,10 @@ export function LoginForm() {
         {errors.password && <p className="text-destructive text-xs">{errors.password.message}</p>}
       </div>
 
-      <label className="flex cursor-pointer items-center gap-2">
-        <Checkbox defaultChecked onCheckedChange={(v) => setValue("remember", v === true)} />
-        <span className="text-muted-foreground text-sm">Remember me for 30 days</span>
-      </label>
-
-      <Button type="submit" size="lg" className="mt-1 w-full" disabled={loginMutation.isPending}>
-        {loginMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
-        {loginMutation.isPending ? "Signing in…" : "Sign in"}
+      <Button type="submit" size="lg" className="mt-1 w-full" disabled={registerMutation.isPending}>
+        {registerMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
+        {registerMutation.isPending ? "Creating account…" : "Create account"}
       </Button>
-
     </motion.form>
   );
 }
