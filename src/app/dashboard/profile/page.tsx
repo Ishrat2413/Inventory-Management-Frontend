@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { InitialsAvatar } from "@/components/shared/initials-avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/store/auth-store";
-import { useUpdateMe, useTodayStatus, useCheckIn, useCheckOut } from "@/hooks/queries/use-users";
+import { useUpdateMe, useTodayStatus, useCheckIn, useCheckOut, useMyEarnings } from "@/hooks/queries/use-users";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { formatCurrency } from "@/lib/utils";
 
@@ -20,6 +20,7 @@ export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
   const updateMe = useUpdateMe();
   const { data: today, isLoading: todayLoading } = useTodayStatus();
+  const { data: earnings, isLoading: earningsLoading } = useMyEarnings();
   const checkIn = useCheckIn();
   const checkOut = useCheckOut();
 
@@ -92,6 +93,49 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {user.role === "EMPLOYEE" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Earnings & Pay Summary</CardTitle>
+            <CardDescription>
+              Detailed breakdown of your accumulated wages for this month.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {earningsLoading ? (
+              <p className="text-muted-foreground text-sm">Loading earnings…</p>
+            ) : !earnings ? (
+              <p className="text-muted-foreground text-sm">No earnings records found.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div className="rounded-xl border border-border p-4 bg-muted/20">
+                  <p className="text-xs text-muted-foreground">Days Worked</p>
+                  <p className="text-xl font-bold mt-1 tabular">{earnings.daysWorked}</p>
+                </div>
+                <div className="rounded-xl border border-border p-4 bg-muted/20">
+                  <p className="text-xs text-muted-foreground">Hours (Reg / OT)</p>
+                  <p className="text-xl font-bold mt-1 tabular">
+                    {earnings.regularHours}h / {earnings.overtimeHours}h
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border p-4 bg-muted/20">
+                  <p className="text-xs text-muted-foreground">Pay (Reg / OT)</p>
+                  <p className="text-xl font-bold mt-1 tabular">
+                    {formatCurrency(earnings.regularPay)} / {formatCurrency(earnings.overtimePay)}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border p-4 bg-primary-soft text-primary">
+                  <p className="text-xs font-semibold text-primary/85">Total Estimated Pay</p>
+                  <p className="text-xl font-black mt-1 tabular">
+                    {formatCurrency(earnings.totalEstimatedPay)}
+                  </p>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

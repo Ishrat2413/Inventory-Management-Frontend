@@ -11,18 +11,19 @@ import { getApiErrorMessage } from "@/lib/api-client";
 import type { User } from "@/types";
 import { UserX, Users } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export function EmployeeTable({ employees }: { employees: User[] }) {
   const deactivateUser = useDeactivateUser();
 
   if (employees.length === 0) {
-    return <EmptyState icon={Users} title="No employees found" description="Add your first employee to get started." />;
+    return <EmptyState icon={Users} title="No users found" description="Add your first user to get started." />;
   }
 
   const handleDeactivate = (employee: User) => {
     deactivateUser.mutate(employee.id, {
-      onSuccess: () => toast.success("Employee deactivated", { description: `${employee.name ?? employee.email} was deactivated.` }),
-      onError: (error) => toast.error("Couldn't deactivate employee", { description: getApiErrorMessage(error) }),
+      onSuccess: () => toast.success("User deactivated", { description: `${employee.name ?? employee.email} was deactivated.` }),
+      onError: (error) => toast.error("Couldn't deactivate user", { description: getApiErrorMessage(error) }),
     });
   };
 
@@ -30,7 +31,8 @@ export function EmployeeTable({ employees }: { employees: User[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Employee</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead>Role</TableHead>
           <TableHead>Department</TableHead>
           <TableHead>Pay rate</TableHead>
           <TableHead>Joined</TableHead>
@@ -56,6 +58,11 @@ export function EmployeeTable({ employees }: { employees: User[] }) {
                     <span className="text-muted-foreground text-xs">{e.email}</span>
                   </div>
                 </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant={e.role === "ADMIN" ? "default" : "outline"} className="capitalize">
+                  {e.role.toLowerCase()}
+                </Badge>
               </TableCell>
               <TableCell className="text-muted-foreground">{profile?.department ?? "—"}</TableCell>
               <TableCell className="tabular">{payLabel}</TableCell>

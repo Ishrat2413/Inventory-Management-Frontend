@@ -20,7 +20,7 @@ export default function EmployeesPage() {
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
 
-  const { data, isLoading } = useUsers({ role: "EMPLOYEE", search: search || undefined, pageNo: page, showPerPage: PAGE_SIZE });
+  const { data, isLoading } = useUsers({ search: search || undefined, pageNo: page, showPerPage: PAGE_SIZE });
 
   return (
     <div className="flex flex-col gap-6">

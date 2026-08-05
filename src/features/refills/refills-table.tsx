@@ -137,7 +137,7 @@ export function RefillsTable({ requests }: { requests: ProductRequest[] }) {
               <TableCell>
                 <RequestStatusBadge status={req.status} />
                 {req.rejectionReason && (
-                  <p className="text-[10px] text-destructive mt-1 max-w-[200px] leading-tight">
+                  <p className="text-[10px] text-destructive mt-1 max-w-50 leading-tight">
                     Reason: {req.rejectionReason}
                   </p>
                 )}
@@ -145,7 +145,7 @@ export function RefillsTable({ requests }: { requests: ProductRequest[] }) {
               <TableCell className="text-muted-foreground text-sm">
                 {req.requestedBy?.name || "System"}
               </TableCell>
-              <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate" title={req.reason || ""}>
+              <TableCell className="text-muted-foreground text-xs max-w-50 truncate" title={req.reason || ""}>
                 {req.reason || "—"}
               </TableCell>
               <TableCell className="text-muted-foreground text-xs tabular">

@@ -4,7 +4,7 @@ import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import {
-  CalendarCheck, Clock, CheckCircle2, Play, AlertTriangle, PlayCircle, Loader2, ArrowRight, ClipboardList, CheckCircle, XCircle
+  CalendarCheck, Clock, CheckCircle2, Play, Loader2, ArrowRight, ClipboardList, CheckCircle
 } from "lucide-react";
 import { useMyTodayAttendance, useCheckIn, useCheckOut } from "@/hooks/queries/use-attendance";
 import { useTasks, useUpdateTask, useCompleteTask } from "@/hooks/queries/use-tasks";
@@ -76,7 +76,7 @@ export function EmployeeDashboard() {
       />
 
       {/* Hero Welcome banner */}
-      <div className="rounded-2xl border border-border bg-gradient-to-r from-primary-soft to-accent-soft p-6 md:p-8">
+      <div className="rounded-2xl border border-border bg-linear-to-r from-primary-soft to-accent-soft p-6 md:p-8">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Welcome back, {user?.name || user?.email || "Employee"}! 👋
         </h1>
