@@ -3,10 +3,11 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { CalendarCheck, Clock, Users, AlertTriangle, ChevronLeft, ChevronRight, Loader2, Pencil } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,7 @@ import { useUsers } from "@/hooks/queries/use-users";
 import { getApiErrorMessage } from "@/lib/api-client";
 import type { AttendanceRecord } from "@/services/attendance.service";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth-store";
 
 function formatTime(dt?: string | null) {
   if (!dt) return "—";
@@ -116,15 +118,30 @@ function OverrideDialog({
 }
 
 export function AttendanceView() {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === "ADMIN";
+
+  const [filterType, setFilterType] = React.useState<"day" | "month" | "all">("day");
   const [selectedDate, setSelectedDate] = React.useState(() => format(new Date(), "yyyy-MM-dd"));
   const [overrideRecord, setOverrideRecord] = React.useState<AttendanceRecord | undefined>();
   const [overrideOpen, setOverrideOpen] = React.useState(false);
 
-  const { data: attendanceData, isLoading } = useAttendance({
-    from: selectedDate,
-    to: selectedDate,
-    showPerPage: 100,
-  });
+  // Derive from/to based on filterType
+  const queryParams = React.useMemo(() => {
+    if (filterType === "day") {
+      return { from: selectedDate, to: selectedDate, showPerPage: 100 };
+    }
+    if (filterType === "month") {
+      const d = new Date(selectedDate);
+      const start = format(startOfMonth(d), "yyyy-MM-dd");
+      const end = format(endOfMonth(d), "yyyy-MM-dd");
+      return { from: start, to: end, showPerPage: 100 };
+    }
+    // "all"
+    return { showPerPage: 200 };
+  }, [filterType, selectedDate]);
+
+  const { data: attendanceData, isLoading } = useAttendance(queryParams);
   const { data: usersData } = useUsers({ role: "EMPLOYEE", showPerPage: 100 });
 
   const records = attendanceData?.records ?? [];
@@ -136,60 +153,108 @@ export function AttendanceView() {
 
   const changeDate = (days: number) => {
     const d = new Date(selectedDate);
-    d.setDate(d.getDate() + days);
+    if (filterType === "month") {
+      d.setMonth(d.getMonth() + days);
+    } else {
+      d.setDate(d.getDate() + days);
+    }
     setSelectedDate(format(d, "yyyy-MM-dd"));
+  };
+
+  const formattedHeaderDate = () => {
+    const d = new Date(selectedDate + "T12:00:00");
+    if (filterType === "month") {
+      return format(d, "MMMM yyyy");
+    }
+    return format(d, "EEEE, MMMM d, yyyy");
   };
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="card-glow rounded-xl border border-border bg-card p-5 flex items-center gap-4 stat-card">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success-soft text-success">
-            <Users className="size-5" />
+      {/* Summary Cards (Admins only) */}
+      {isAdmin && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="card-glow rounded-xl border border-border bg-card p-5 flex items-center gap-4 stat-card">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success-soft text-success">
+              <Users className="size-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Present</p>
+              <p className="text-2xl font-bold tabular">{isLoading ? "—" : presentCount}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Present</p>
-            <p className="text-2xl font-bold tabular">{isLoading ? "—" : presentCount}</p>
+          <div className="card-glow rounded-xl border border-border bg-card p-5 flex items-center gap-4 stat-card">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning-soft text-warning">
+              <Clock className="size-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Late</p>
+              <p className="text-2xl font-bold tabular">{isLoading ? "—" : lateCount}</p>
+            </div>
+          </div>
+          <div className="card-glow rounded-xl border border-border bg-card p-5 flex items-center gap-4 stat-card">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-destructive-soft text-destructive">
+              <AlertTriangle className="size-5" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Absent</p>
+              <p className="text-2xl font-bold tabular">{isLoading ? "—" : absentCount}</p>
+            </div>
           </div>
         </div>
-        <div className="card-glow rounded-xl border border-border bg-card p-5 flex items-center gap-4 stat-card">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning-soft text-warning">
-            <Clock className="size-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Late</p>
-            <p className="text-2xl font-bold tabular">{isLoading ? "—" : lateCount}</p>
-          </div>
-        </div>
-        <div className="card-glow rounded-xl border border-border bg-card p-5 flex items-center gap-4 stat-card">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-destructive-soft text-destructive">
-            <AlertTriangle className="size-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Absent</p>
-            <p className="text-2xl font-bold tabular">{isLoading ? "—" : absentCount}</p>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Date Navigator */}
-      <div className="flex items-center gap-3 justify-between">
+      {/* Date Navigator / Filter Select */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
         <div className="flex items-center gap-2">
-          <Button size="icon" variant="outline" onClick={() => changeDate(-1)}><ChevronLeft className="size-4" /></Button>
-          <Input type="date" className="w-auto" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
-          <Button size="icon" variant="outline" onClick={() => changeDate(1)} disabled={selectedDate >= format(new Date(), "yyyy-MM-dd")}>
-            <ChevronRight className="size-4" />
-          </Button>
+          {filterType !== "all" && (
+            <div className="flex items-center gap-2">
+              <Button size="icon" variant="outline" onClick={() => changeDate(-1)}><ChevronLeft className="size-4" /></Button>
+              <Input
+                type={filterType === "month" ? "month" : "date"}
+                className="w-auto"
+                value={filterType === "month" ? selectedDate.substring(0, 7) : selectedDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedDate(val.includes("-") && val.length === 7 ? `${val}-01` : val);
+                }}
+              />
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => changeDate(1)}
+                disabled={selectedDate >= format(new Date(), "yyyy-MM-dd")}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          )}
+
+          {filterType !== "all" && (
+            <p className="text-sm font-medium text-muted-foreground ml-2">
+              {formattedHeaderDate()}
+            </p>
+          )}
         </div>
-        <p className="text-sm text-muted-foreground">
-          {format(new Date(selectedDate + "T12:00:00"), "EEEE, MMMM d, yyyy")}
-        </p>
+
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <Label className="text-xs text-muted-foreground">Filter range:</Label>
+          <Select value={filterType} onValueChange={(val: any) => setFilterType(val)}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">Single Day</SelectItem>
+              <SelectItem value="month">By Month</SelectItem>
+              <SelectItem value="all">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Attendance Table */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <OverrideDialog open={overrideOpen} onOpenChange={setOverrideOpen} record={overrideRecord} />
+        {isAdmin && <OverrideDialog open={overrideOpen} onOpenChange={setOverrideOpen} record={overrideRecord} />}
         {isLoading ? (
           <div className="p-4 flex flex-col gap-3">
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
@@ -200,43 +265,55 @@ export function AttendanceView() {
               <CalendarCheck className="size-5 text-muted-foreground" />
             </div>
             <p className="text-sm font-medium">No attendance records</p>
-            <p className="text-xs text-muted-foreground">No attendance found for this date.</p>
+            <p className="text-xs text-muted-foreground">No attendance found for the selected range.</p>
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/40">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Employee</th>
+                <th className="px-4 py-3 text-left font-semibold text-muted-foreground">
+                  {isAdmin ? "Employee" : "Date"}
+                </th>
                 <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Status</th>
                 <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Check-in</th>
                 <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Check-out</th>
                 <th className="px-4 py-3 text-left font-semibold text-muted-foreground">Duration</th>
-                <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Override</th>
+                {isAdmin && <th className="px-4 py-3 text-right font-semibold text-muted-foreground">Override</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {records.map((record) => (
                 <tr key={record.id} className={cn("hover:bg-muted/30 transition-colors", !record.checkInTime && "opacity-60")}>
                   <td className="px-4 py-3">
-                    <p className="font-medium">{record.user?.name || record.user?.email || "Unknown"}</p>
-                    {record.overriddenById && (
-                      <p className="text-[10px] text-muted-foreground">Override by admin</p>
+                    {isAdmin ? (
+                      <div>
+                        <p className="font-medium">{record.user?.name || record.user?.email || "Unknown"}</p>
+                        {record.overriddenById && (
+                          <p className="text-[10px] text-muted-foreground">Override by admin</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="font-medium tabular">
+                        {format(parseISO(record.date), "EEEE, MMM d, yyyy")}
+                      </p>
                     )}
                   </td>
                   <td className="px-4 py-3"><StatusBadge record={record} /></td>
                   <td className="px-4 py-3 tabular text-muted-foreground">{formatTime(record.checkInTime)}</td>
                   <td className="px-4 py-3 tabular text-muted-foreground">{formatTime(record.checkOutTime)}</td>
                   <td className="px-4 py-3 tabular text-muted-foreground">{formatDuration(record.checkInTime, record.checkOutTime)}</td>
-                  <td className="px-4 py-3 text-right">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="size-8"
-                      onClick={() => { setOverrideRecord(record); setOverrideOpen(true); }}
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
-                  </td>
+                  {isAdmin && (
+                    <td className="px-4 py-3 text-right">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-8"
+                        onClick={() => { setOverrideRecord(record); setOverrideOpen(true); }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

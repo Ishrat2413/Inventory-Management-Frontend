@@ -38,6 +38,16 @@ export const attendanceService = {
     return data.data as AttendanceRecord | null;
   },
 
+  checkIn: async () => {
+    const { data } = await apiClient.post<ApiEnvelope<AttendanceRecord>>("/attendance/check-in", {});
+    return data.data as AttendanceRecord;
+  },
+
+  checkOut: async () => {
+    const { data } = await apiClient.post<ApiEnvelope<AttendanceRecord>>("/attendance/check-out", {});
+    return data.data as AttendanceRecord;
+  },
+
   override: async (payload: {
     userId: string;
     date: string;

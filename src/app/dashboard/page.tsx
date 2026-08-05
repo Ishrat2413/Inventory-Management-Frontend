@@ -24,15 +24,20 @@ const RevenueVsTargetChart = dynamic(
 
 import { LowInventoryWidget } from "@/features/dashboard/low-inventory-widget";
 import { useAuthStore } from "@/store/auth-store";
+import { EmployeeDashboard } from "@/features/dashboard/employee-dashboard";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
+
+  if (user?.role === "EMPLOYEE") {
+    return <EmployeeDashboard />;
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <SectionHeader
         title={`Welcome back${user?.name ? `, ${user.name.split(" ")[0]}` : ""}`}
-        description="Here's what's happening across inventory, tasks, and requests today."
+        description="Here&apos;s what&apos;s happening across inventory, tasks, and requests today."
       />
 
       <OverviewCards />

@@ -9,6 +9,7 @@ import { ICON_MAP } from "@/constants/icon-map";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { useLogout } from "@/hooks/queries/use-auth";
+import { useAuthStore } from "@/store/auth-store";
 import {
   Tooltip,
   TooltipTrigger,
@@ -56,7 +57,7 @@ function NavLink({
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
       )}
-      <Icon className={cn("size-[18px] shrink-0 transition-transform duration-200", active && "scale-105")} />
+      <Icon className={cn("size-4.5 shrink-0 transition-transform duration-200", active && "scale-105")} />
       {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   );
@@ -91,11 +92,26 @@ export function SidebarContent({
     logoutMutation.mutate(undefined, { onSettled: () => router.replace("/login") });
   };
 
+  const user = useAuthStore((s) => s.user);
+
+  const filteredGroups = NAV_GROUPS.map((group) => {
+    let items = group.items;
+    if (user?.role === "EMPLOYEE") {
+      items = items.filter((item) =>
+        item.href === "/dashboard" ||
+        item.href === "/dashboard/operations" ||
+        item.href === "/dashboard/attendance" ||
+        item.href === "/dashboard/refills"
+      );
+    }
+    return { ...group, items };
+  }).filter((group) => group.items.length > 0);
+
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className={cn("flex h-16 shrink-0 items-center gap-3 px-4 border-b border-sidebar-border", collapsed && "justify-center px-0")}>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md shadow-primary/30">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary to-accent text-primary-foreground shadow-md shadow-primary/30">
           <Sparkles className="size-4" />
         </span>
         {!collapsed && (
@@ -108,7 +124,7 @@ export function SidebarContent({
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-3 thin-scrollbar">
-        {NAV_GROUPS.map((group) => (
+        {filteredGroups.map((group) => (
           <div key={group.label} className="mb-4">
             {!collapsed && (
               <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
@@ -151,7 +167,7 @@ export function SidebarContent({
             collapsed && "justify-center px-0",
           )}
         >
-          <LogOut className="size-[18px] shrink-0" />
+          <LogOut className="size-4.5 shrink-0" />
           {!collapsed && <span>Log out</span>}
         </button>
 

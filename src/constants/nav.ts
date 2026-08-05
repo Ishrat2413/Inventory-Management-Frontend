@@ -20,6 +20,7 @@ export const NAV_GROUPS = [
     items: [
       { label: "Tasks", href: "/dashboard/operations", icon: "Truck" },
       { label: "Attendance", href: "/dashboard/attendance", icon: "CalendarCheck" },
+      { label: "Refills", href: "/dashboard/refills", icon: "ClipboardList" },
     ] as NavItem[],
   },
   {

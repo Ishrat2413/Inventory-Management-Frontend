@@ -23,6 +23,28 @@ export function useOverrideAttendance() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: attendanceService.override,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["attendance"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["attendance"] });
+    },
+  });
+}
+
+export function useCheckIn() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: attendanceService.checkIn,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["attendance"] });
+    },
+  });
+}
+
+export function useCheckOut() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: attendanceService.checkOut,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["attendance"] });
+    },
   });
 }
