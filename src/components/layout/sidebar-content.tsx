@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { LayoutDashboard, LogOut, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { NAV_ITEMS, NAV_FOOTER_ITEMS } from "@/constants/nav";
+import { LayoutDashboard, LogOut, ChevronsLeft, ChevronsRight, Sparkles } from "lucide-react";
+import { NAV_GROUPS, NAV_FOOTER_ITEMS } from "@/constants/nav";
 import { ICON_MAP } from "@/constants/icon-map";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
@@ -42,9 +42,9 @@ function NavLink({
       href={href}
       onClick={onNavigate}
       className={cn(
-        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+        "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
         active
-          ? "bg-primary-soft text-primary"
+          ? "bg-primary text-primary-foreground shadow-sm shadow-primary/30"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
         collapsed && "justify-center px-0",
       )}
@@ -52,11 +52,11 @@ function NavLink({
       {active && (
         <motion.span
           layoutId="active-nav-pill"
-          className="absolute inset-0 rounded-xl bg-primary-soft -z-10"
+          className="absolute inset-0 rounded-xl bg-primary -z-10"
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
       )}
-      <Icon className="size-[18px] shrink-0" />
+      <Icon className={cn("size-[18px] shrink-0 transition-transform duration-200", active && "scale-105")} />
       {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   );
@@ -93,25 +93,43 @@ export function SidebarContent({
 
   return (
     <div className="flex h-full flex-col">
-      <div className={cn("flex h-16 shrink-0 items-center gap-2.5 px-4", collapsed && "justify-center px-0")}>
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <LayoutDashboard className="size-4" />
+      {/* Logo */}
+      <div className={cn("flex h-16 shrink-0 items-center gap-3 px-4 border-b border-sidebar-border", collapsed && "justify-center px-0")}>
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md shadow-primary/30">
+          <Sparkles className="size-4" />
         </span>
-        {!collapsed && <span className="text-base font-semibold tracking-tight">Dabang</span>}
+        {!collapsed && (
+          <div>
+            <span className="text-base font-bold tracking-tight text-foreground">Dabang</span>
+            <p className="text-[10px] text-muted-foreground -mt-0.5">Inventory System</p>
+          </div>
+        )}
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-2">
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.href}
-            {...item}
-            collapsed={collapsed}
-            active={isActive(pathname, item.href)}
-            onNavigate={onNavigate}
-          />
+      {/* Navigation */}
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-3 thin-scrollbar">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label} className="mb-4">
+            {!collapsed && (
+              <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                {group.label}
+              </p>
+            )}
+            <div className="flex flex-col gap-0.5">
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.href}
+                  {...item}
+                  collapsed={collapsed}
+                  active={isActive(pathname, item.href)}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
+          </div>
         ))}
 
-        <div className={cn("my-3 h-px bg-border", collapsed && "mx-1")} />
+        <div className={cn("mt-auto pt-3 border-t border-sidebar-border", collapsed && "mx-1")} />
 
         {NAV_FOOTER_ITEMS.map((item) => (
           <NavLink
@@ -124,28 +142,29 @@ export function SidebarContent({
         ))}
       </nav>
 
-      <div className="flex flex-col gap-1 border-t border-border px-3 py-3">
+      {/* Footer: Logout + Collapse */}
+      <div className={cn("flex shrink-0 flex-col gap-1 border-t border-sidebar-border px-3 py-3", collapsed && "items-center px-1")}>
         <button
           onClick={handleLogout}
           className={cn(
-            "text-muted-foreground hover:bg-destructive-soft hover:text-destructive flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive-soft hover:text-destructive w-full",
             collapsed && "justify-center px-0",
           )}
         >
           <LogOut className="size-[18px] shrink-0" />
-          {!collapsed && "Log out"}
+          {!collapsed && <span>Log out</span>}
         </button>
 
         {showCollapseToggle && (
           <button
             onClick={toggleSidebar}
             className={cn(
-              "text-muted-foreground hover:bg-muted hover:text-foreground hidden cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors lg:flex",
+              "flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground w-full",
               collapsed && "justify-center px-0",
             )}
           >
-            {collapsed ? <ChevronsRight className="size-[18px]" /> : <ChevronsLeft className="size-[18px]" />}
-            {!collapsed && "Collapse"}
+            {collapsed ? <ChevronsRight className="size-4 shrink-0" /> : <ChevronsLeft className="size-4 shrink-0" />}
+            {!collapsed && <span>Collapse</span>}
           </button>
         )}
       </div>

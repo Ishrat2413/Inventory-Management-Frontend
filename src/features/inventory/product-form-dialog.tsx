@@ -4,7 +4,8 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Loader2, Plus, Save } from "lucide-react";
+import { Loader2, Plus, Save, Tag } from "lucide-react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +21,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { productSchema, PRODUCT_CATEGORIES, type ProductFormValues } from "@/lib/validations/product";
 import { useCreateProduct, useUpdateProduct, useVendors } from "@/hooks/queries/use-products";
+import { useCategories } from "@/hooks/queries/use-categories";
 import { getApiErrorMessage } from "@/lib/api-client";
 import type { Product } from "@/types";
+
+const productSchema = z.object({
+  name: z.string().min(2, "Product name is required"),
+  sku: z.string().optional(),
+  categoryId: z.string().optional(),
+  unitPrice: z.number().min(0.01, "Enter a valid unit price"),
+  currentStock: z.number().int().min(0, "Quantity can't be negative"),
+  lowStockThreshold: z.number().int().min(0).optional(),
+  vendorId: z.string().optional(),
+  isComposite: z.boolean().optional(),
+});
+
+type ProductFormValues = z.infer<typeof productSchema>;
 
 export function ProductFormDialog({
   product,
@@ -42,7 +56,10 @@ export function ProductFormDialog({
   const setOpen = setControlledOpen ?? setInternalOpen;
 
   const { data: vendorData } = useVendors();
+  const { data: categoriesData } = useCategories();
   const vendors = vendorData?.vendors ?? [];
+  const categories = categoriesData?.categories ?? [];
+
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const loading = createProduct.isPending || updateProduct.isPending;
@@ -50,7 +67,7 @@ export function ProductFormDialog({
   const defaultValues = (p?: Product): ProductFormValues => ({
     name: p?.name ?? "",
     sku: p?.sku ?? "",
-    category: (p?.customFields?.category as string) ?? "",
+    categoryId: (p as Product & { categoryId?: string })?.categoryId ?? "",
     unitPrice: p ? Number(p.unitPrice) : 0,
     currentStock: p ? Number(p.currentStock) : 0,
     lowStockThreshold: p?.lowStockThreshold ? Number(p.lowStockThreshold) : undefined,
@@ -84,7 +101,8 @@ export function ProductFormDialog({
       lowStockThreshold: values.lowStockThreshold,
       vendorId: values.vendorId || undefined,
       isComposite: values.isComposite,
-      customFields: { category: values.category },
+      categoryId: values.categoryId || undefined,
+      customFields: {},
     };
 
     const onSuccess = () => {
@@ -133,19 +151,27 @@ export function ProductFormDialog({
             </div>
             <div className="flex flex-col gap-1.5">
               <Label>Category</Label>
-              <Select value={watch("category")} onValueChange={(v) => setValue("category", v)}>
+              <Select value={watch("categoryId") ?? ""} onValueChange={(v) => setValue("categoryId", v)}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PRODUCT_CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
+                  <SelectItem value="">No category</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <span className="flex items-center gap-2">
+                        <Tag className="size-3 shrink-0 text-muted-foreground" />
+                        {c.name}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.category && <p className="text-destructive text-xs">{errors.category.message}</p>}
+              {categories.length === 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  No categories yet — <a href="/dashboard/categories" className="text-primary underline">create one</a>
+                </p>
+              )}
             </div>
           </div>
 
@@ -168,11 +194,12 @@ export function ProductFormDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label>Vendor</Label>
-            <Select value={watch("vendorId")} onValueChange={(v) => setValue("vendorId", v)}>
+            <Select value={watch("vendorId") ?? ""} onValueChange={(v) => setValue("vendorId", v)}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select vendor (optional)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">No vendor</SelectItem>
                 {vendors.map((v) => (
                   <SelectItem key={v.id} value={v.id}>
                     {v.name}

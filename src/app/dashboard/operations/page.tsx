@@ -8,10 +8,8 @@ import { SectionHeader } from "@/components/shared/chart-card";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/shared/pagination";
-import { ConfirmDialog } from "@/components/shared/states";
+import { useTasks } from "@/hooks/queries/use-tasks";
 import { Skeleton } from "@/components/ui/skeleton";
-
-import { useTasks, useCompleteTask } from "@/hooks/queries/use-tasks";
 import { TaskStatusCards } from "@/features/operations/status-cards";
 import { OperationsTable } from "@/features/operations/operations-table";
 import { CreateTaskDialog } from "@/features/operations/create-task-dialog";
@@ -24,7 +22,6 @@ export default function OperationsPage() {
   const [statusFilter, setStatusFilter] = React.useState<TaskStatus | "all">("all");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
-  const [confirmingTask, setConfirmingTask] = React.useState<Task | null>(null);
 
   const { data, isLoading } = useTasks({
     status: statusFilter === "all" ? undefined : statusFilter,
@@ -35,7 +32,6 @@ export default function OperationsPage() {
   const { data: inProgressCounts } = useTasks({ status: "IN_PROGRESS", showPerPage: 1 });
   const { data: completedCounts } = useTasks({ status: "COMPLETED", showPerPage: 1 });
   const { data: cancelledCounts } = useTasks({ status: "CANCELLED", showPerPage: 1 });
-  const completeTask = useCompleteTask();
 
   const tasks = (data?.tasks ?? []).filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()));
 
@@ -44,14 +40,6 @@ export default function OperationsPage() {
     IN_PROGRESS: inProgressCounts?.totalData ?? 0,
     COMPLETED: completedCounts?.totalData ?? 0,
     CANCELLED: cancelledCounts?.totalData ?? 0,
-  };
-
-  const handleComplete = () => {
-    if (!confirmingTask) return;
-    completeTask.mutate(confirmingTask.id, {
-      onSuccess: () => toast.success("Task completed", { description: "Required stock has been deducted." }),
-      onError: (error) => toast.error("Couldn't complete task", { description: getApiErrorMessage(error) }),
-    });
   };
 
   return (
@@ -86,21 +74,11 @@ export default function OperationsPage() {
             ))}
           </div>
         ) : (
-          <OperationsTable tasks={tasks} onComplete={setConfirmingTask} completingId={completeTask.isPending ? confirmingTask?.id : undefined} />
+          <OperationsTable tasks={tasks} />
         )}
 
         <Pagination page={page} pageCount={data?.totalPages ?? 1} onPageChange={setPage} totalItems={data?.totalData ?? 0} pageSize={PAGE_SIZE} />
       </Card>
-
-      <ConfirmDialog
-        open={!!confirmingTask}
-        onOpenChange={(open) => !open && setConfirmingTask(null)}
-        title="Complete this task?"
-        description={`Completing "${confirmingTask?.title}" will deduct the required products (and any approved extra requests) from stock. This can't be undone.`}
-        confirmLabel="Complete task"
-        destructive={false}
-        onConfirm={handleComplete}
-      />
     </div>
   );
 }

@@ -76,8 +76,18 @@ export const vendorsService = {
     return data.data as { vendors: Vendor[]; totalData: number; totalPages: number };
   },
 
-  create: async (payload: { name: string; contact?: string; phone?: string; email?: string; address?: string }) => {
+  create: async (payload: { name: string; contact?: string | null; phone?: string | null; email?: string | null; address?: string | null; notes?: string | null }) => {
     const { data } = await apiClient.post<ApiEnvelope<Vendor>>("/vendors", payload);
     return data.data as Vendor;
   },
+
+  update: async (id: string, payload: { name?: string; contact?: string | null; phone?: string | null; email?: string | null; address?: string | null; notes?: string | null }) => {
+    const { data } = await apiClient.patch<ApiEnvelope<Vendor>>(`/vendors/${id}`, payload);
+    return data.data as Vendor;
+  },
+
+  remove: async (id: string) => {
+    await apiClient.delete(`/vendors/${id}`);
+  },
 };
+
