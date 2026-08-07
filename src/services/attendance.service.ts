@@ -14,6 +14,7 @@ export interface AttendanceRecord {
   overriddenById?: string | null;
   overriddenBy?: { id: string; name?: string | null } | null;
   createdAt: string;
+  notes?: string | null;
 }
 
 export interface AttendanceListParams {
@@ -26,26 +27,63 @@ export interface AttendanceListParams {
 
 export const attendanceService = {
   list: async (params?: AttendanceListParams) => {
-    const { data } = await apiClient.get<ApiEnvelope<{ records: AttendanceRecord[]; totalData: number; totalPages: number }>>(
+    // Map userId to employeeId for the backend query parameter
+    const apiParams = params ? {
+      ...params,
+      employeeId: params.userId,
+      userId: undefined,
+    } : undefined;
+
+    const { data } = await apiClient.get<ApiEnvelope<{ records: any[]; totalData: number; totalPages: number }>>(
       "/attendance",
-      { params }
+      { params: apiParams }
     );
-    return data.data as { records: AttendanceRecord[]; totalData: number; totalPages: number };
+    const res = data.data;
+    if (res && res.records) {
+      res.records = res.records.map((r) => ({
+        ...r,
+        userId: r.employeeId,
+        checkInTime: r.checkIn ?? r.checkInTime ?? null,
+        checkOutTime: r.checkOut ?? r.checkOutTime ?? null,
+      }));
+    }
+    return res as { records: AttendanceRecord[]; totalData: number; totalPages: number };
   },
 
   myToday: async () => {
-    const { data } = await apiClient.get<ApiEnvelope<AttendanceRecord>>("/attendance/me/today");
-    return data.data as AttendanceRecord | null;
+    const { data } = await apiClient.get<ApiEnvelope<any>>("/attendance/me/today");
+    const r = data.data;
+    if (r) {
+      return {
+        ...r,
+        userId: r.employeeId,
+        checkInTime: r.checkIn ?? r.checkInTime ?? null,
+        checkOutTime: r.checkOut ?? r.checkOutTime ?? null,
+      } as AttendanceRecord;
+    }
+    return null;
   },
 
   checkIn: async () => {
-    const { data } = await apiClient.post<ApiEnvelope<AttendanceRecord>>("/attendance/check-in", {});
-    return data.data as AttendanceRecord;
+    const { data } = await apiClient.post<ApiEnvelope<any>>("/attendance/check-in", {});
+    const r = data.data;
+    return {
+      ...r,
+      userId: r.employeeId,
+      checkInTime: r.checkIn ?? r.checkInTime ?? null,
+      checkOutTime: r.checkOut ?? r.checkOutTime ?? null,
+    } as AttendanceRecord;
   },
 
   checkOut: async () => {
-    const { data } = await apiClient.post<ApiEnvelope<AttendanceRecord>>("/attendance/check-out", {});
-    return data.data as AttendanceRecord;
+    const { data } = await apiClient.post<ApiEnvelope<any>>("/attendance/check-out", {});
+    const r = data.data;
+    return {
+      ...r,
+      userId: r.employeeId,
+      checkInTime: r.checkIn ?? r.checkInTime ?? null,
+      checkOutTime: r.checkOut ?? r.checkOutTime ?? null,
+    } as AttendanceRecord;
   },
 
   override: async (payload: {
@@ -55,7 +93,21 @@ export const attendanceService = {
     checkOutTime?: string;
     notes?: string;
   }) => {
-    const { data } = await apiClient.post<ApiEnvelope<AttendanceRecord>>("/attendance/override", payload);
-    return data.data as AttendanceRecord;
+    // Map frontend keys to backend validation keys
+    const backendPayload = {
+      employeeId: payload.userId,
+      date: payload.date,
+      checkIn: payload.checkInTime || undefined,
+      checkOut: payload.checkOutTime || undefined,
+      notes: payload.notes,
+    };
+    const { data } = await apiClient.post<ApiEnvelope<any>>("/attendance/override", backendPayload);
+    const r = data.data;
+    return {
+      ...r,
+      userId: r.employeeId,
+      checkInTime: r.checkIn ?? r.checkInTime ?? null,
+      checkOutTime: r.checkOut ?? r.checkOutTime ?? null,
+    } as AttendanceRecord;
   },
 };
