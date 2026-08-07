@@ -15,10 +15,12 @@ import { OperationsTable } from "@/features/operations/operations-table";
 import { CreateTaskDialog } from "@/features/operations/create-task-dialog";
 import { getApiErrorMessage } from "@/lib/api-client";
 import type { Task, TaskStatus } from "@/types";
+import { useAuthStore } from "@/store/auth-store";
 
 const PAGE_SIZE = 8;
 
 export default function OperationsPage() {
+  const user = useAuthStore((s) => s.user);
   const [statusFilter, setStatusFilter] = React.useState<TaskStatus | "all">("all");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
@@ -47,7 +49,7 @@ export default function OperationsPage() {
       <SectionHeader
         title="Operation status"
         description="Monitor work orders from pending to completed."
-        action={<CreateTaskDialog />}
+        action={user?.role !== "EMPLOYEE" ? <CreateTaskDialog /> : undefined}
       />
 
       <TaskStatusCards

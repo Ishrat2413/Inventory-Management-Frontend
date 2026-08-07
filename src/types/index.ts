@@ -144,7 +144,7 @@ export interface ProductRequest {
 export interface Attendance {
   id: string;
   employeeId: string;
-  employee?: { id: string; name: string | null };
+  employee?: { id: string; name: string | null; email?: string | null };
   date: string;
   checkIn: string | null;
   checkOut: string | null;

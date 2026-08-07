@@ -4,11 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersService, attendanceService, type UserListParams, type CreateEmployeePayload } from "@/services/users.service";
 import { useAuthStore } from "@/store/auth-store";
 
-export function useUsers(params: UserListParams) {
+export function useUsers(params: UserListParams, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["users", params],
     queryFn: () => usersService.list(params),
     placeholderData: (prev) => prev,
+    ...options,
   });
 }
 

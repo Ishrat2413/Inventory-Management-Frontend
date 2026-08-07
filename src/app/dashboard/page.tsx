@@ -23,6 +23,7 @@ const RevenueVsTargetChart = dynamic(
 );
 
 import { LowInventoryWidget } from "@/features/dashboard/low-inventory-widget";
+import { TodayAttendanceWidget } from "@/features/dashboard/today-attendance-widget";
 import { useAuthStore } from "@/store/auth-store";
 import { EmployeeDashboard } from "@/features/dashboard/employee-dashboard";
 
@@ -49,6 +50,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <PendingRequestsTable />
+        <TodayAttendanceWidget />
         <LowInventoryWidget />
       </div>
 

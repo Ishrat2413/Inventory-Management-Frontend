@@ -17,6 +17,7 @@ import type { Task } from "@/types";
 import { Truck, CheckCircle2, Loader2, MoreHorizontal, Play, X, Eye } from "lucide-react";
 import { useUpdateTask, useCompleteTask } from "@/hooks/queries/use-tasks";
 import { getApiErrorMessage } from "@/lib/api-client";
+import { useAuthStore } from "@/store/auth-store";
 
 import { TaskDetailDrawer } from "./task-detail-drawer";
 
@@ -25,6 +26,7 @@ export function OperationsTable({
 }: {
   tasks: Task[];
 }) {
+  const user = useAuthStore((s) => s.user);
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
@@ -126,9 +128,9 @@ export function OperationsTable({
                         <CheckCircle2 className="size-3.5 mr-2 text-success" /> Mark Complete
                       </DropdownMenuItem>
                     )}
-                    {task.status !== "COMPLETED" && task.status !== "CANCELLED" && (
+                    {user?.role === "ADMIN" && task.status !== "COMPLETED" && task.status !== "CANCELLED" && (
                       <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
+                        className="text-destructive focus:text-destructive cursor-pointer"
                         onClick={() => handleStatusChange(task, "CANCELLED")}
                       >
                         <X className="size-3.5 mr-2" /> Cancel task
