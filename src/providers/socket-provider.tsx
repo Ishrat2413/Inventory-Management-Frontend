@@ -23,9 +23,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Connect to the backend
-    // const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api/v1";
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
- const socketInstance = io(socketUrl);
+    const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api/v1";
+    const defaultSocketUrl = rawBaseUrl.replace(/\/api\/v1\/?$/, "");
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL || defaultSocketUrl;
+    const socketInstance = io(socketUrl);
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
