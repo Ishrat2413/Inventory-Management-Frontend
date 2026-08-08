@@ -54,7 +54,14 @@ export function InventoryTable({
                 <div className="flex items-center gap-3">
                   <ProductThumb name={p.name} />
                   <div className="flex flex-col">
-                    <span className="max-w-[200px] truncate font-medium">{p.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="max-w-50 truncate font-medium">{p.name}</span>
+                      {p.isComposite && (
+                        <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-semibold px-1.5 py-0.5 rounded-md">
+                          Compound
+                        </span>
+                      )}
+                    </div>
                     <span className="text-muted-foreground text-xs">{p.sku ?? "No SKU"}</span>
                   </div>
                 </div>
@@ -62,7 +69,7 @@ export function InventoryTable({
               <TableCell className="text-muted-foreground">{category}</TableCell>
               <TableCell className="tabular font-medium">{formatCurrency(Number(p.unitPrice))}</TableCell>
               <TableCell className="tabular">{p.currentStock} units</TableCell>
-              <TableCell className="text-muted-foreground max-w-[150px] truncate">{p.vendor?.name ?? "—"}</TableCell>
+              <TableCell className="text-muted-foreground max-w-37.5 truncate">{p.vendor?.name ?? "—"}</TableCell>
               <TableCell className="text-muted-foreground">{formatDate(p.createdAt)}</TableCell>
               <TableCell>
                 <ProductStockBadge currentStock={Number(p.currentStock)} lowStockThreshold={threshold} />

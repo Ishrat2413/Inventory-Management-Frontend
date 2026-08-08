@@ -2,7 +2,7 @@
 export type Role = "ADMIN" | "EMPLOYEE";
 export type PayCalculationMode = "HOURLY" | "DAILY_PLUS_OVERTIME";
 export type TaskStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
-export type StockMovementType = "PURCHASE" | "CONSUMPTION" | "ADJUSTMENT" | "WRITE_OFF" | "RETURN";
+export type StockMovementType = "PURCHASE" | "CONSUMPTION" | "ADJUSTMENT" | "WRITE_OFF" | "RETURN" | "ASSEMBLY";
 export type ProductRequestType = "TASK_RELATED" | "GENERAL";
 export type ProductRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type AttendanceSource = "FINGERPRINT" | "MANUAL";
@@ -62,6 +62,15 @@ export interface Vendor {
 }
 
 // ---------- Products ----------
+export interface BOMSummaryItem {
+  childProductId: string;
+  name: string;
+  sku: string | null;
+  quantityRequired: number;
+  unitPrice: number;
+  currentStock: number;
+}
+
 export interface Product {
   id: string;
   sku: string | null;
@@ -80,6 +89,8 @@ export interface Product {
   customFields: Record<string, unknown>;
   createdAt: string;
   daysNegative?: number;
+  bomSummary?: BOMSummaryItem[];
+  materialCost?: number;
 }
 
 export interface BOMTreeNode {

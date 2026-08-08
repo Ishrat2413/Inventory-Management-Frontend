@@ -54,7 +54,14 @@ export function InventoryGrid({
                 </div>
               </div>
               <div className="flex flex-col gap-1 px-5">
-                <p className="truncate font-medium">{p.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="truncate font-medium">{p.name}</p>
+                  {p.isComposite && (
+                    <span className="bg-primary/10 text-primary border border-primary/20 text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0">
+                      Compound
+                    </span>
+                  )}
+                </div>
                 <p className="text-muted-foreground text-xs">
                   {p.sku ?? "No SKU"} · {category}
                 </p>
