@@ -25,8 +25,10 @@ export interface ProductPayload {
   currentStock?: number;
   lowStockThreshold?: number;
   vendorId?: string;
+  categoryId?: string;
   isComposite?: boolean;
   customFields?: Record<string, unknown>;
+  bomItems?: { childProductId: string; quantityRequired: number }[];
 }
 
 export const productsService = {
@@ -36,7 +38,7 @@ export const productsService = {
   },
 
   getById: async (id: string) => {
-    const { data } = await apiClient.get<ApiEnvelope<Product & { bomSummary: unknown[] }>>(`/products/${id}`);
+    const { data } = await apiClient.get<ApiEnvelope<Product>>(`/products/${id}`);
     return data.data as Product;
   },
 
@@ -67,6 +69,11 @@ export const productsService = {
   replaceBOM: async (id: string, items: { childProductId: string; quantityRequired: number }[]) => {
     const { data } = await apiClient.put<ApiEnvelope<BOMTreeNode>>(`/products/${id}/bom`, { items });
     return data.data as BOMTreeNode;
+  },
+
+  assemble: async (productId: string, quantity: number, notes?: string) => {
+    const { data } = await apiClient.post<ApiEnvelope<unknown>>("/stock-movements/assemble", { productId, quantity, notes });
+    return data.data;
   },
 };
 

@@ -58,6 +58,19 @@ export function useDeleteProduct() {
   });
 }
 
+export function useAssembleProduct() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ productId, quantity, notes }: { productId: string; quantity: number; notes?: string }) =>
+      productsService.assemble(productId, quantity, notes),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["product", variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+    },
+  });
+}
+
 export function useVendors() {
   return useQuery({
     queryKey: ["vendors"],
