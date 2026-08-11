@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +38,7 @@ export function InitialsAvatar({
   const gradient = GRADIENTS[hashString(name) % GRADIENTS.length];
   return (
     <Avatar className={cn(size, className)}>
-      <AvatarFallback className={cn("bg-gradient-to-br text-white", gradient)}>
+      <AvatarFallback className={cn("bg-linear-to-br text-white", gradient)}>
         {initials(name)}
       </AvatarFallback>
     </Avatar>
@@ -46,18 +47,34 @@ export function InitialsAvatar({
 
 export function ProductThumb({
   name,
+  imageUrl,
   className,
   size = "size-11",
 }: {
   name: string;
+  imageUrl?: string | null;
   className?: string;
   size?: string;
 }) {
+  const [imgError, setImgError] = React.useState(false);
   const gradient = GRADIENTS[hashString(name) % GRADIENTS.length];
+
+  if (imageUrl && !imgError) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={imageUrl}
+        alt={name}
+        onError={() => setImgError(true)}
+        className={cn("shrink-0 object-cover rounded-xl", size, className)}
+      />
+    );
+  }
+
   return (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-xs font-semibold text-white",
+        "flex shrink-0 items-center justify-center rounded-xl bg-linear-to-br text-xs font-semibold text-white",
         gradient,
         size,
         className,

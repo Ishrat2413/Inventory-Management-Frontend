@@ -47,13 +47,19 @@ export const productsService = {
     return data.data as Product[];
   },
 
-  create: async (payload: ProductPayload) => {
-    const { data } = await apiClient.post<ApiEnvelope<Product>>("/products", payload);
+  create: async (payload: ProductPayload | FormData) => {
+    const isFormData = payload instanceof FormData;
+    const { data } = await apiClient.post<ApiEnvelope<Product>>("/products", payload, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
     return data.data as Product;
   },
 
-  update: async (id: string, payload: Partial<ProductPayload> & { isDiscontinued?: boolean }) => {
-    const { data } = await apiClient.patch<ApiEnvelope<Product>>(`/products/${id}`, payload);
+  update: async (id: string, payload: (Partial<ProductPayload> & { isDiscontinued?: boolean; removeImage?: string }) | FormData) => {
+    const isFormData = payload instanceof FormData;
+    const { data } = await apiClient.patch<ApiEnvelope<Product>>(`/products/${id}`, payload, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
     return data.data as Product;
   },
 

@@ -91,6 +91,8 @@ export interface Product {
   daysNegative?: number;
   bomSummary?: BOMSummaryItem[];
   materialCost?: number;
+  imageUrl?: string | null;
+  imageStorageId?: string | null;
 }
 
 export interface BOMTreeNode {

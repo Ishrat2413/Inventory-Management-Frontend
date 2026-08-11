@@ -35,6 +35,7 @@ export function InventoryTable({
       <TableHeader>
         <TableRow>
           <TableHead>Product</TableHead>
+          <TableHead>Image</TableHead>
           <TableHead>Category</TableHead>
           <TableHead>Price</TableHead>
           <TableHead>Quantity</TableHead>
@@ -51,20 +52,20 @@ export function InventoryTable({
           return (
             <TableRow key={p.id} className="cursor-pointer" onClick={() => onView(p)}>
               <TableCell>
-                <div className="flex items-center gap-3">
-                  <ProductThumb name={p.name} />
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="max-w-50 truncate font-medium">{p.name}</span>
-                      {p.isComposite && (
-                        <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-semibold px-1.5 py-0.5 rounded-md">
-                          Compound
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-muted-foreground text-xs">{p.sku ?? "No SKU"}</span>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="max-w-50 truncate font-medium">{p.name}</span>
+                    {p.isComposite && (
+                      <span className="bg-primary/10 text-primary border border-primary/20 text-[10px] font-semibold px-1.5 py-0.5 rounded-md">
+                        Compound
+                      </span>
+                    )}
                   </div>
+                  <span className="text-muted-foreground text-xs">{p.sku ?? "No SKU"}</span>
                 </div>
+              </TableCell>
+              <TableCell>
+                <ProductThumb name={p.name} imageUrl={p.imageUrl} size="size-12" className="rounded-lg" />
               </TableCell>
               <TableCell className="text-muted-foreground">{category}</TableCell>
               <TableCell className="tabular font-medium">{formatCurrency(Number(p.unitPrice))}</TableCell>

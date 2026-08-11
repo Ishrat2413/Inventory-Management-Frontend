@@ -98,7 +98,7 @@ export function ProductDetailsDrawer({
         <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-6">
           {/* Header Card */}
           <div className="flex items-center gap-4">
-            <ProductThumb name={activeProduct.name} size="size-16" className="rounded-2xl text-base" />
+            <ProductThumb name={activeProduct.name} imageUrl={activeProduct.imageUrl} size="size-16" className="rounded-2xl text-base" />
             <div className="flex flex-col gap-1">
               <p className="font-semibold text-foreground">{activeProduct.name}</p>
               <p className="text-muted-foreground text-sm">{activeProduct.sku ?? "No SKU"}</p>

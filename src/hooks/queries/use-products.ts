@@ -36,7 +36,7 @@ function useInvalidateProducts() {
 export function useCreateProduct() {
   const invalidate = useInvalidateProducts();
   return useMutation({
-    mutationFn: (payload: ProductPayload) => productsService.create(payload),
+    mutationFn: (payload: ProductPayload | FormData) => productsService.create(payload),
     onSuccess: invalidate,
   });
 }
@@ -44,7 +44,7 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const invalidate = useInvalidateProducts();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<ProductPayload> & { isDiscontinued?: boolean } }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: (Partial<ProductPayload> & { isDiscontinued?: boolean; removeImage?: string }) | FormData }) =>
       productsService.update(id, payload),
     onSuccess: invalidate,
   });
