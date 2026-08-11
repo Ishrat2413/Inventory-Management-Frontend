@@ -48,7 +48,7 @@ export function InventoryGrid({
               onClick={() => onView(p)}
             >
               <div className="flex items-start justify-between px-5">
-                <ProductThumb name={p.name} size="size-12" className="rounded-xl text-sm" />
+                <ProductThumb name={p.name} imageUrl={p.imageUrl} size="size-12" className="rounded-xl text-sm" />
                 <div onClick={(e) => e.stopPropagation()}>
                   <ProductRowActions product={p} onView={onView} onEdit={onEdit} onDelete={onDelete} />
                 </div>

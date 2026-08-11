@@ -68,6 +68,9 @@ export function ProductFormDialog({
   const [bomItems, setBomItems] = React.useState<SelectedComponent[]>([]);
   const [componentSearch, setComponentSearch] = React.useState("");
   const [isSearchFocused, setIsSearchFocused] = React.useState(false);
+  const [selectedImage, setSelectedImage] = React.useState<File | null>(null);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [shouldRemoveImage, setShouldRemoveImage] = React.useState(false);
 
   const { data: vendorData } = useVendors();
   const { data: categoriesData } = useCategories();
@@ -119,12 +122,16 @@ export function ProductFormDialog({
     if (!open) {
       setBomItems([]);
       setComponentSearch("");
+      setSelectedImage(null);
+      setImagePreview(null);
+      setShouldRemoveImage(false);
       return;
     }
 
     if (isEdit) {
       if (fullProduct && fullProduct.id === product.id) {
         reset(defaultValues(fullProduct));
+        setImagePreview(fullProduct.imageUrl || null);
         if (fullProduct.bomSummary) {
           setBomItems(
             fullProduct.bomSummary.map((item) => ({
@@ -139,11 +146,15 @@ export function ProductFormDialog({
         }
       } else {
         reset(defaultValues(product));
+        setImagePreview(product.imageUrl || null);
       }
     } else {
       reset(defaultValues(undefined));
       setBomItems([]);
+      setImagePreview(null);
     }
+    setSelectedImage(null);
+    setShouldRemoveImage(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, fullProduct, product, isEdit]);
 
@@ -156,23 +167,32 @@ export function ProductFormDialog({
       return;
     }
 
-    const payload = {
-      name: values.name,
-      sku: values.sku || undefined,
-      unitPrice: values.unitPrice,
-      currentStock: values.currentStock,
-      lowStockThreshold: values.lowStockThreshold,
-      vendorId: values.vendorId || undefined,
-      isComposite: values.isComposite,
-      categoryId: values.categoryId || undefined,
-      customFields: {},
-      bomItems: values.isComposite
+    const formData = new FormData();
+    formData.append("name", values.name);
+    if (values.sku) formData.append("sku", values.sku);
+    formData.append("unitPrice", String(values.unitPrice));
+    formData.append("currentStock", String(values.currentStock));
+    if (values.lowStockThreshold !== undefined && values.lowStockThreshold !== null) {
+      formData.append("lowStockThreshold", String(values.lowStockThreshold));
+    }
+    if (values.vendorId) formData.append("vendorId", values.vendorId);
+    formData.append("isComposite", String(!!values.isComposite));
+    if (values.categoryId) formData.append("categoryId", values.categoryId);
+    formData.append("customFields", JSON.stringify({}));
+    formData.append("bomItems", JSON.stringify(
+      values.isComposite
         ? bomItems.map((item) => ({
             childProductId: item.childProductId,
             quantityRequired: item.quantityRequired,
           }))
-        : [],
-    };
+        : []
+    ));
+
+    if (selectedImage) {
+      formData.append("image", selectedImage);
+    } else if (shouldRemoveImage) {
+      formData.append("removeImage", "true");
+    }
 
     const onSuccess = () => {
       toast.success(isEdit ? "Product updated" : "Product added", { description: `${values.name} was saved.` });
@@ -181,9 +201,9 @@ export function ProductFormDialog({
     const onError = (error: unknown) => toast.error("Something went wrong", { description: getApiErrorMessage(error) });
 
     if (isEdit && product) {
-      updateProduct.mutate({ id: product.id, payload }, { onSuccess, onError });
+      updateProduct.mutate({ id: product.id, payload: formData }, { onSuccess, onError });
     } else {
-      createProduct.mutate(payload, { onSuccess, onError });
+      createProduct.mutate(formData, { onSuccess, onError });
     }
   };
 
@@ -254,6 +274,44 @@ export function ProductFormDialog({
             <Label htmlFor="name">Product name</Label>
             <Input id="name" placeholder="Aurora Wireless Headphones" {...register("name")} />
             {errors.name && <p className="text-destructive text-xs">{errors.name.message}</p>}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Product Image</Label>
+            {imagePreview ? (
+              <div className="relative size-24 rounded-lg overflow-hidden border border-border group bg-muted">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imagePreview} alt="Preview" className="size-full object-cover" />
+                <button
+                  type="button"
+                  className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-medium transition-opacity"
+                  onClick={() => {
+                    setImagePreview(null);
+                    setSelectedImage(null);
+                    setShouldRemoveImage(true);
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="max-w-60"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setSelectedImage(file);
+                      setImagePreview(URL.createObjectURL(file));
+                      setShouldRemoveImage(false);
+                    }
+                  }}
+                />
+                <span className="text-xs text-muted-foreground">Upload JPG, PNG or WEBP</span>
+              </div>
+            )}
           </div>
 
           <label className="border-border flex items-center justify-between rounded-lg border px-3 py-2.5">

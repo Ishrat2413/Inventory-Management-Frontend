@@ -53,8 +53,8 @@ export default function InventoryPage() {
   const handleDeleteConfirm = () => {
     if (!deletingProduct) return;
     deleteProduct.mutate(deletingProduct.id, {
-      onSuccess: () => toast.success("Product discontinued", { description: `${deletingProduct.name} was removed from active inventory.` }),
-      onError: (error) => toast.error("Couldn't discontinue product", { description: getApiErrorMessage(error) }),
+      onSuccess: () => toast.success("Product deleted", { description: `${deletingProduct.name} was removed from the system.` }),
+      onError: (error) => toast.error("Couldn't delete product", { description: getApiErrorMessage(error) }),
     });
   };
 
