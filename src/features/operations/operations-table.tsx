@@ -14,12 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatDate } from "@/lib/utils";
 import type { Task } from "@/types";
-import { Truck, CheckCircle2, Loader2, MoreHorizontal, Play, X, Eye } from "lucide-react";
+import { Truck, CheckCircle2, Loader2, MoreHorizontal, Play, X, Eye, FileText } from "lucide-react";
 import { useUpdateTask, useCompleteTask } from "@/hooks/queries/use-tasks";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth-store";
 
 import { TaskDetailDrawer } from "./task-detail-drawer";
+import { InvoiceDialog } from "./invoice-dialog";
 
 export function OperationsTable({
   tasks,
@@ -28,6 +29,7 @@ export function OperationsTable({
 }) {
   const user = useAuthStore((s) => s.user);
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
+  const [invoiceTask, setInvoiceTask] = React.useState<Task | null>(null);
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
 
@@ -62,6 +64,11 @@ export function OperationsTable({
         task={selectedTask}
         open={!!selectedTask}
         onOpenChange={(open) => { if (!open) setSelectedTask(null); }}
+      />
+      <InvoiceDialog
+        task={invoiceTask}
+        open={!!invoiceTask}
+        onOpenChange={(open) => { if (!open) setInvoiceTask(null); }}
       />
       <Table>
         <TableHeader>
@@ -117,6 +124,11 @@ export function OperationsTable({
                     <DropdownMenuItem onClick={() => setSelectedTask(task)}>
                       <Eye className="size-3.5 mr-2" /> View details
                     </DropdownMenuItem>
+                    {task.status === "COMPLETED" && (
+                      <DropdownMenuItem onClick={() => setInvoiceTask(task)}>
+                        <FileText className="size-3.5 mr-2 text-primary" /> View Invoice
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     {task.status === "PENDING" && (
                       <DropdownMenuItem onClick={() => handleStatusChange(task, "IN_PROGRESS")}>

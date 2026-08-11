@@ -129,6 +129,8 @@ export interface Task {
   completedById: string | null;
   completedBy?: { id: string; name: string | null } | null;
   completedAt: string | null;
+  startedAt: string | null;
+  productsSnapshot: any;
   createdAt: string;
   assignments: TaskAssignment[];
   requiredProducts: TaskRequiredProduct[];

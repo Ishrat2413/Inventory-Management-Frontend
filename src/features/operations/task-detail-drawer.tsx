@@ -50,7 +50,7 @@ export function TaskDetailDrawer({
           </div>
         </SheetHeader>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 px-6 pb-6">
           {task.description && (
             <InfoRow label="Description">
               <p className="text-muted-foreground">{task.description}</p>
@@ -70,9 +70,21 @@ export function TaskDetailDrawer({
                 <Calendar className="size-3.5" />
                 Created: {formatDt(task.createdAt)}
               </p>
+              {task.startedAt && (
+                <p className="flex items-center gap-2 text-primary font-medium">
+                  <Calendar className="size-3.5" />
+                  Started: {formatDt(task.startedAt)}
+                </p>
+              )}
+              {task.completedAt && (
+                <p className="flex items-center gap-2 text-success font-medium">
+                  <Calendar className="size-3.5" />
+                  Completed: {formatDt(task.completedAt)}
+                </p>
+              )}
               {task.completedBy && (
                 <p className="flex items-center gap-2 text-success">
-                  <Calendar className="size-3.5" />
+                  <User className="size-3.5" />
                   Completed by: {task.completedBy.name ?? "Unknown"}
                 </p>
               )}
@@ -97,8 +109,39 @@ export function TaskDetailDrawer({
             )}
           </InfoRow>
 
-          <InfoRow label={`Required Products (${task.requiredProducts.length})`}>
-            {task.requiredProducts.length === 0 ? (
+          <InfoRow label="Required Products">
+            {task.productsSnapshot && Array.isArray(task.productsSnapshot) && task.productsSnapshot.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {task.productsSnapshot.map((item: any, idx: number) => (
+                  <div key={idx} className="flex flex-col gap-1.5 rounded-lg bg-muted/40 p-3 border border-border/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Package className="size-4 text-primary" />
+                        <span className="text-sm font-semibold">{item.name}</span>
+                        {item.sku && <span className="text-muted-foreground text-xs font-mono">({item.sku})</span>}
+                      </div>
+                      <span className="bg-primary/10 text-primary border border-primary/20 text-[11px] font-semibold px-2 py-0.5 rounded-md">
+                        ×{item.quantity}
+                      </span>
+                    </div>
+                    {item.isComposite && item.bomComponents && item.bomComponents.length > 0 && (
+                      <div className="mt-1 flex flex-col gap-1 pl-4 border-l border-primary/20">
+                        {item.bomComponents.map((child: any, cidx: number) => (
+                          <div key={cidx} className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <span>↳</span>
+                              <span>{child.name}</span>
+                              {child.sku && <span className="font-mono text-[10px]">({child.sku})</span>}
+                            </span>
+                            <span className="font-medium">×{child.totalQuantityRequired}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : task.requiredProducts.length === 0 ? (
               <p className="text-muted-foreground">No products required</p>
             ) : (
               <div className="flex flex-col gap-2">
