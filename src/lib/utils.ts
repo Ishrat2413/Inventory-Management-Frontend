@@ -6,12 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number, compact = false) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
+  const formatted = new Intl.NumberFormat("en-BD", {
     maximumFractionDigits: compact ? 1 : 0,
     notation: compact ? "compact" : "standard",
   }).format(value);
+  return `৳${formatted}`;
 }
 
 export function formatNumber(value: number, compact = false) {

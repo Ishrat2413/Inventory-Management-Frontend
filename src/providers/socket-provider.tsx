@@ -45,10 +45,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       // React Query will automatically refetch active queries
       // We map the backend model names to our query keys
       const modelToQueryKey: Record<string, string[]> = {
-        product: ["products", "low-stock-products"],
+        product: ["products", "low-stock-products", "product"],
         stockmovement: ["stock-movements", "inventory-value"],
-        task: ["tasks"],
-        user: ["users"],
+        task: ["tasks", "task"],
+        user: ["users", "user"],
         productrequest: ["product-requests"],
         attendance: ["attendance"],
         vendor: ["vendors"],
