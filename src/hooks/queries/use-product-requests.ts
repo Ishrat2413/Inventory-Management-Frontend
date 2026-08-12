@@ -38,3 +38,12 @@ export function useIssueProductRequest() {
     },
   });
 }
+
+export function useBOMPreview(productId: string | null) {
+  return useQuery({
+    queryKey: ["bom-preview", productId],
+    queryFn: () => productRequestsService.bomPreview(productId!, 1),
+    enabled: !!productId,
+    staleTime: 60_000,
+  });
+}

@@ -36,7 +36,7 @@ export function InventoryToolbar({
       <div className="relative flex-1">
         <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
         <Input
-          placeholder="Search by name or SKU…"
+          placeholder="Search by name…"
           className="pl-9"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}

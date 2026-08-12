@@ -9,6 +9,7 @@ import { Pagination } from "@/components/shared/pagination";
 import { ConfirmDialog } from "@/components/shared/states";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProducts, useDeleteProduct, useLowStockProducts } from "@/hooks/queries/use-products";
 import { InventoryToolbar } from "@/features/inventory/inventory-toolbar";
 import { InventoryTable } from "@/features/inventory/inventory-table";
@@ -25,6 +26,7 @@ export default function InventoryPage() {
   const [search, setSearch] = React.useState("");
   const [category, setCategory] = React.useState("all");
   const [lowStockOnly, setLowStockOnly] = React.useState(false);
+  const [tab, setTab] = React.useState<"all" | "simple" | "compound">("all");
   const [view, setView] = React.useState<"list" | "grid">("list");
   const [page, setPage] = React.useState(1);
 
@@ -37,6 +39,7 @@ export default function InventoryPage() {
     search: search || undefined,
     category: category === "all" ? undefined : category,
     lowStock: lowStockOnly || undefined,
+    isComposite: tab === "all" ? undefined : tab === "compound",
     pageNo: page,
     showPerPage: PAGE_SIZE,
   });
@@ -68,8 +71,16 @@ export default function InventoryPage() {
 
       <LowStockBanner count={lowStockList?.length ?? 0} />
 
-      <Card className="gap-4 py-6">
-        <div className="px-6">
+      <Card className="gap-4 py-6 flex flex-col">
+        <div className="px-6 flex flex-col gap-4 border-b border-border pb-5">
+          <Tabs value={tab} onValueChange={(val) => { setTab(val as any); setPage(1); }} className="w-full">
+            <TabsList className="grid grid-cols-3 max-w-[420px]">
+              <TabsTrigger value="all">All Products</TabsTrigger>
+              <TabsTrigger value="simple">Simple Products</TabsTrigger>
+              <TabsTrigger value="compound">Compound (BOM)</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           <InventoryToolbar
             search={search}
             onSearchChange={(v) => {

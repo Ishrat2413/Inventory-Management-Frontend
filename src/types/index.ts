@@ -137,10 +137,28 @@ export interface Task {
 }
 
 // ---------- Product Requests ----------
+export interface BOMSnapshotComponent {
+  productId: string;
+  name: string;
+  sku: string | null;
+  quantityRequiredPerUnit: number;
+  totalQuantityRequired: number;
+  unitPrice?: number;
+}
+
+export interface BOMSnapshot {
+  productId: string;
+  name: string;
+  sku: string | null;
+  isComposite: boolean;
+  quantity: number;
+  bomComponents: BOMSnapshotComponent[];
+}
+
 export interface ProductRequest {
   id: string;
   productId: string;
-  product: { id: string; name: string; sku: string | null; currentStock: string };
+  product: { id: string; name: string; sku: string | null; currentStock: string; isComposite?: boolean };
   quantity: string;
   type: ProductRequestType;
   status: ProductRequestStatus;
@@ -152,6 +170,8 @@ export interface ProductRequest {
   approvedBy?: { id: string; name: string | null } | null;
   reason: string | null;
   rejectionReason: string | null;
+  bomSnapshot?: BOMSnapshot | null;
+  stockMovements?: { id: string }[];
   createdAt: string;
 }
 
