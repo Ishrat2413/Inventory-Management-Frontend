@@ -9,6 +9,7 @@ import { Pagination } from "@/components/shared/pagination";
 import { ConfirmDialog } from "@/components/shared/states";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useProducts, useDeleteProduct, useLowStockProducts } from "@/hooks/queries/use-products";
 import { InventoryToolbar } from "@/features/inventory/inventory-toolbar";
 import { InventoryTable } from "@/features/inventory/inventory-table";
@@ -26,24 +27,41 @@ export default function InventoryPage() {
   const [category, setCategory] = React.useState("all");
   const [lowStockOnly, setLowStockOnly] = React.useState(false);
   const [view, setView] = React.useState<"list" | "grid">("list");
-  const [page, setPage] = React.useState(1);
+  
+  // Separate paginations for both lists
+  const [compoundPage, setCompoundPage] = React.useState(1);
+  const [simplePage, setSimplePage] = React.useState(1);
 
   const [viewingProduct, setViewingProduct] = React.useState<Product | null>(null);
   const [editingProduct, setEditingProduct] = React.useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = React.useState<Product | null>(null);
   const [editOpen, setEditOpen] = React.useState(false);
 
-  const { data, isLoading } = useProducts({
+  // Fetch Compound Products (BOM)
+  const { data: compoundData, isLoading: isCompoundLoading } = useProducts({
     search: search || undefined,
     category: category === "all" ? undefined : category,
     lowStock: lowStockOnly || undefined,
-    pageNo: page,
+    isComposite: true,
+    pageNo: compoundPage,
     showPerPage: PAGE_SIZE,
   });
+
+  // Fetch Normal Products (Simple)
+  const { data: simpleData, isLoading: isSimpleLoading } = useProducts({
+    search: search || undefined,
+    category: category === "all" ? undefined : category,
+    lowStock: lowStockOnly || undefined,
+    isComposite: false,
+    pageNo: simplePage,
+    showPerPage: PAGE_SIZE,
+  });
+
   const { data: lowStockList } = useLowStockProducts();
   const deleteProduct = useDeleteProduct();
 
-  const products = data?.products ?? [];
+  const compoundProducts = compoundData?.products ?? [];
+  const simpleProducts = simpleData?.products ?? [];
 
   const handleEdit = (p: Product) => {
     setEditingProduct(p);
@@ -59,7 +77,7 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <SectionHeader
         title="Inventory management"
         description="Track, add, and update every product in your catalog."
@@ -68,53 +86,99 @@ export default function InventoryPage() {
 
       <LowStockBanner count={lowStockList?.length ?? 0} />
 
-      <Card className="gap-4 py-6">
-        <div className="px-6">
-          <InventoryToolbar
-            search={search}
-            onSearchChange={(v) => {
-              setSearch(v);
-              setPage(1);
-            }}
-            category={category}
-            onCategoryChange={(v) => {
-              setCategory(v);
-              setPage(1);
-            }}
-            lowStockOnly={lowStockOnly}
-            onLowStockOnlyChange={(v) => {
-              setLowStockOnly(v);
-              setPage(1);
-            }}
-            view={view}
-            onViewChange={setView}
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Skeleton key={i} className="h-40 w-full rounded-2xl" />
-            ))}
-          </div>
-        ) : (
-          <div className={view === "list" ? "" : "px-6"}>
-            {view === "list" ? (
-              <InventoryTable products={products} onView={setViewingProduct} onEdit={handleEdit} onDelete={setDeletingProduct} />
-            ) : (
-              <InventoryGrid products={products} onView={setViewingProduct} onEdit={handleEdit} onDelete={setDeletingProduct} />
-            )}
-          </div>
-        )}
-
-        <Pagination
-          page={page}
-          pageCount={data?.totalPages ?? 1}
-          onPageChange={setPage}
-          totalItems={data?.totalData ?? 0}
-          pageSize={PAGE_SIZE}
+      {/* Shared Toolbar / Filters */}
+      <Card className="px-6 py-4">
+        <InventoryToolbar
+          search={search}
+          onSearchChange={(v) => {
+            setSearch(v);
+            setCompoundPage(1);
+            setSimplePage(1);
+          }}
+          category={category}
+          onCategoryChange={(v) => {
+            setCategory(v);
+            setCompoundPage(1);
+            setSimplePage(1);
+          }}
+          lowStockOnly={lowStockOnly}
+          onLowStockOnlyChange={(v) => {
+            setLowStockOnly(v);
+            setCompoundPage(1);
+            setSimplePage(1);
+          }}
+          view={view}
+          onViewChange={setView}
         />
       </Card>
+
+      {/* ─── Upper Table: Compound Products (BOM) ─── */}
+      <div className="flex flex-col gap-3.5">
+        <div className="px-1">
+          <h2 className="text-base font-bold tracking-tight text-foreground">Compound Products</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Finished goods assembled from subcomponents based on configured Bills of Materials (BOM).</p>
+        </div>
+
+        <Card className="gap-4 py-6 flex flex-col">
+          {isCompoundLoading ? (
+            <div className="grid grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : (
+            <div className={view === "list" ? "" : "px-6"}>
+              {view === "list" ? (
+                <InventoryTable products={compoundProducts} onView={setViewingProduct} onEdit={handleEdit} onDelete={setDeletingProduct} />
+              ) : (
+                <InventoryGrid products={compoundProducts} onView={setViewingProduct} onEdit={handleEdit} onDelete={setDeletingProduct} />
+              )}
+            </div>
+          )}
+
+          <Pagination
+            page={compoundPage}
+            pageCount={compoundData?.totalPages ?? 1}
+            onPageChange={setCompoundPage}
+            totalItems={compoundData?.totalData ?? 0}
+            pageSize={PAGE_SIZE}
+          />
+        </Card>
+      </div>
+
+      {/* ─── Lower Table: Normal Products (Simple) ─── */}
+      <div className="flex flex-col gap-3.5">
+        <div className="px-1">
+          <h2 className="text-base font-bold tracking-tight text-foreground">Normal Products</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Raw materials, components, and single standalone inventory items.</p>
+        </div>
+
+        <Card className="gap-4 py-6 flex flex-col">
+          {isSimpleLoading ? (
+            <div className="grid grid-cols-1 gap-4 px-6 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+              ))}
+            </div>
+          ) : (
+            <div className={view === "list" ? "" : "px-6"}>
+              {view === "list" ? (
+                <InventoryTable products={simpleProducts} onView={setViewingProduct} onEdit={handleEdit} onDelete={setDeletingProduct} />
+              ) : (
+                <InventoryGrid products={simpleProducts} onView={setViewingProduct} onEdit={handleEdit} onDelete={setDeletingProduct} />
+              )}
+            </div>
+          )}
+
+          <Pagination
+            page={simplePage}
+            pageCount={simpleData?.totalPages ?? 1}
+            onPageChange={setSimplePage}
+            totalItems={simpleData?.totalData ?? 0}
+            pageSize={PAGE_SIZE}
+          />
+        </Card>
+      </div>
 
       <ProductDetailsDrawer
         product={viewingProduct}
@@ -144,3 +208,4 @@ export default function InventoryPage() {
     </div>
   );
 }
+

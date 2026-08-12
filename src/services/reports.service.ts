@@ -53,4 +53,12 @@ export const productRequestsService = {
     const { data } = await apiClient.post<ApiEnvelope<unknown>>(`/product-requests/${id}/issue`);
     return data.data;
   },
+
+  bomPreview: async (productId: string, quantity: number) => {
+    const { data } = await apiClient.get<ApiEnvelope<{ isComposite: boolean; product: { id: string; name: string; sku: string | null }; quantity: number; components: Array<{ productId: string; name: string; sku: string | null; quantityRequiredPerUnit: number; totalQuantityRequired: number }> }>>(
+      "/product-requests/bom-preview",
+      { params: { productId, quantity } },
+    );
+    return data.data!;
+  },
 };

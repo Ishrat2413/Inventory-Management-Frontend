@@ -50,7 +50,7 @@ function buildPrintHtml(task: Task, invoiceProducts: any[], totalAmount: number,
 <title>Invoice — ${task.title}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;color:#111;background:#fff;padding:40px}
+  body{font-family:"Segoe UI",system-ui,sans-serif;font-size:13px;color:#111;background:#fff;padding:30px}
   .page{max-width:740px;margin:0 auto}
   /* Header */
   .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:2px solid #111;margin-bottom:28px}
@@ -89,7 +89,13 @@ function buildPrintHtml(task: Task, invoiceProducts: any[], totalAmount: number,
   .total-amount{font-size:22px;font-weight:900;color:#4f46e5}
   /* Footer */
   .footer{margin-top:40px;padding-top:16px;border-top:1px solid #ddd;display:flex;justify-content:space-between;font-size:10px;color:#888}
-  @media print{body{padding:20px}button{display:none}}
+  @media print{
+    html, body { height: 99%; overflow: visible; }
+    body { padding: 0 !important; margin: 0 !important; }
+    .page { max-width: 100% !important; padding: 10px !important; margin: 0 auto !important; }
+    .footer { margin-top: 20px !important; }
+    @page { size: auto; margin: 15mm 10mm; }
+  }
 </style>
 </head>
 <body>

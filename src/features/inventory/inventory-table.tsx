@@ -34,15 +34,15 @@ export function InventoryTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Product</TableHead>
-          <TableHead>Image</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead>Price</TableHead>
-          <TableHead>Quantity</TableHead>
-          <TableHead>Vendor</TableHead>
-          <TableHead>Created</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="w-[22%]">Product</TableHead>
+          <TableHead className="w-[8%]">Image</TableHead>
+          <TableHead className="w-[12%]">Category</TableHead>
+          <TableHead className="w-[10%]">Price</TableHead>
+          <TableHead className="w-[10%]">Quantity</TableHead>
+          <TableHead className="w-[13%]">Vendor</TableHead>
+          <TableHead className="w-[10%]">Created</TableHead>
+          <TableHead className="w-[10%]">Status</TableHead>
+          <TableHead className="w-[5%] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -51,7 +51,7 @@ export function InventoryTable({
           const threshold = p.lowStockThreshold ? Number(p.lowStockThreshold) : null;
           return (
             <TableRow key={p.id} className="cursor-pointer" onClick={() => onView(p)}>
-              <TableCell>
+              <TableCell className="w-[22%]">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <span className="max-w-50 truncate font-medium">{p.name}</span>
@@ -64,18 +64,18 @@ export function InventoryTable({
                   <span className="text-muted-foreground text-xs">{p.sku ?? "No SKU"}</span>
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="w-[8%]">
                 <ProductThumb name={p.name} imageUrl={p.imageUrl} size="size-12" className="rounded-lg" />
               </TableCell>
-              <TableCell className="text-muted-foreground">{category}</TableCell>
-              <TableCell className="tabular font-medium">{formatCurrency(Number(p.unitPrice))}</TableCell>
-              <TableCell className="tabular">{p.currentStock} units</TableCell>
-              <TableCell className="text-muted-foreground max-w-37.5 truncate">{p.vendor?.name ?? "—"}</TableCell>
-              <TableCell className="text-muted-foreground">{formatDate(p.createdAt)}</TableCell>
-              <TableCell>
+              <TableCell className="w-[12%] text-muted-foreground">{category}</TableCell>
+              <TableCell className="w-[10%] tabular font-medium">{formatCurrency(Number(p.unitPrice))}</TableCell>
+              <TableCell className="w-[10%] tabular">{p.currentStock} units</TableCell>
+              <TableCell className="w-[13%] text-muted-foreground max-w-37.5 truncate">{p.vendor?.name ?? "—"}</TableCell>
+              <TableCell className="w-[10%] text-muted-foreground">{formatDate(p.createdAt)}</TableCell>
+              <TableCell className="w-[10%]">
                 <ProductStockBadge currentStock={Number(p.currentStock)} lowStockThreshold={threshold} />
               </TableCell>
-              <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+              <TableCell className="w-[5%] text-right" onClick={(e) => e.stopPropagation()}>
                 <ProductRowActions product={p} onView={onView} onEdit={onEdit} onDelete={onDelete} />
               </TableCell>
             </TableRow>

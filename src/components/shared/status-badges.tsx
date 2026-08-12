@@ -13,14 +13,16 @@ export function TaskStatusBadge({ status }: { status: TaskStatus }) {
   return <Badge variant={s.variant}>{s.label}</Badge>;
 }
 
-const requestStatusMap: Record<ProductRequestStatus, { label: string; variant: "warning" | "success" | "destructive" }> = {
+const requestStatusMap: Record<ProductRequestStatus | "FULFILLED", { label: string; variant: "warning" | "success" | "destructive" | "default" }> = {
   PENDING: { label: "Pending", variant: "warning" },
-  APPROVED: { label: "Approved", variant: "success" },
+  APPROVED: { label: "Approved", variant: "default" },
   REJECTED: { label: "Rejected", variant: "destructive" },
+  FULFILLED: { label: "Fulfilled", variant: "success" },
 };
 
-export function RequestStatusBadge({ status }: { status: ProductRequestStatus }) {
-  const s = requestStatusMap[status];
+export function RequestStatusBadge({ status, isFulfilled }: { status: ProductRequestStatus; isFulfilled?: boolean }) {
+  const displayStatus = isFulfilled ? "FULFILLED" : status;
+  const s = requestStatusMap[displayStatus];
   return <Badge variant={s.variant}>{s.label}</Badge>;
 }
 
