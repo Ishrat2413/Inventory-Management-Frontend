@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/auth-store";
 
 const ADMIN_ONLY_ROUTES = [
   "/dashboard/inventory",
+  "/dashboard/components",
   "/dashboard/categories",
   "/dashboard/vendors",
   "/dashboard/employees",

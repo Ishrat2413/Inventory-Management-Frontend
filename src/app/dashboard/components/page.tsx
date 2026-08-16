@@ -21,7 +21,7 @@ import type { Product } from "@/types";
 
 const PAGE_SIZE = 8;
 
-export default function InventoryPage() {
+export default function ComponentsPage() {
   const [search, setSearch] = React.useState("");
   const [category, setCategory] = React.useState("all");
   const [lowStockOnly, setLowStockOnly] = React.useState(false);
@@ -34,12 +34,12 @@ export default function InventoryPage() {
   const [deletingProduct, setDeletingProduct] = React.useState<Product | null>(null);
   const [editOpen, setEditOpen] = React.useState(false);
 
-  // Fetch Compound Products (BOM)
+  // Fetch Normal Products (Simple)
   const { data, isLoading } = useProducts({
     search: search || undefined,
     category: category === "all" ? undefined : category,
     lowStock: lowStockOnly || undefined,
-    isComposite: true,
+    isComposite: false,
     pageNo: page,
     showPerPage: PAGE_SIZE,
   });
@@ -57,17 +57,17 @@ export default function InventoryPage() {
   const handleDeleteConfirm = () => {
     if (!deletingProduct) return;
     deleteProduct.mutate(deletingProduct.id, {
-      onSuccess: () => toast.success("Product deleted", { description: `${deletingProduct.name} was removed from the system.` }),
-      onError: (error) => toast.error("Couldn't delete product", { description: getApiErrorMessage(error) }),
+      onSuccess: () => toast.success("Component deleted", { description: `${deletingProduct.name} was removed from the system.` }),
+      onError: (error) => toast.error("Couldn't delete component", { description: getApiErrorMessage(error) }),
     });
   };
 
   return (
     <div className="flex flex-col gap-6">
       <SectionHeader
-        title="Products catalog"
-        description="Track, add, and update compound products in your inventory."
-        action={<ProductFormDialog defaultIsComposite={true} />}
+        title="Components catalog"
+        description="Track, add, and update raw materials, components, and standalone items in your inventory."
+        action={<ProductFormDialog defaultIsComposite={false} />}
       />
 
       <LowStockBanner count={lowStockList?.length ?? 0} />
@@ -134,19 +134,18 @@ export default function InventoryPage() {
           setEditOpen(open);
           if (!open) setEditingProduct(null);
         }}
-        defaultIsComposite={true}
+        defaultIsComposite={false}
         trigger={null}
       />
 
       <ConfirmDialog
         open={!!deletingProduct}
         onOpenChange={(open) => !open && setDeletingProduct(null)}
-        title="Discontinue this product?"
+        title="Discontinue this component?"
         description={`"${deletingProduct?.name}" will be marked discontinued and hidden from active inventory. This can't be undone from the UI.`}
-        confirmLabel="Discontinue product"
+        confirmLabel="Discontinue component"
         onConfirm={handleDeleteConfirm}
       />
     </div>
   );
 }
-
