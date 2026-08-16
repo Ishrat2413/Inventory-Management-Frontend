@@ -10,6 +10,7 @@ export const NAV_GROUPS = [
   {
     label: "Inventory",
     items: [
+      { label: "Components", href: "/dashboard/components", icon: "Cpu" },
       { label: "Products", href: "/dashboard/inventory", icon: "Boxes" },
       { label: "Categories", href: "/dashboard/categories", icon: "Tag" },
       { label: "Vendors", href: "/dashboard/vendors", icon: "Building2" },

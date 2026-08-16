@@ -54,11 +54,13 @@ export function ProductFormDialog({
   trigger,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
+  defaultIsComposite,
 }: {
   product?: Product;
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  defaultIsComposite?: boolean;
 }) {
   const isEdit = !!product;
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -99,7 +101,7 @@ export function ProductFormDialog({
     currentStock: p ? Number(p.currentStock) : 0,
     lowStockThreshold: p?.lowStockThreshold ? Number(p.lowStockThreshold) : undefined,
     vendorId: p?.vendorId ?? undefined,
-    isComposite: p?.isComposite ?? false,
+    isComposite: p ? p.isComposite : (defaultIsComposite ?? false),
   });
 
   const {

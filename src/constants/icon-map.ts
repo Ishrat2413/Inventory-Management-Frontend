@@ -9,6 +9,7 @@ import {
   Building2,
   CalendarCheck,
   ClipboardList,
+  Cpu,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,4 +24,5 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Building2,
   CalendarCheck,
   ClipboardList,
+  Cpu,
 };
