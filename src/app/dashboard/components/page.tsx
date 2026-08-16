@@ -70,7 +70,7 @@ export default function ComponentsPage() {
         action={<ProductFormDialog defaultIsComposite={false} />}
       />
 
-      <LowStockBanner count={lowStockList?.length ?? 0} />
+      <LowStockBanner count={lowStockList?.filter(p => !p.isComposite).length ?? 0} />
 
       <Card className="gap-4 py-6 flex flex-col">
         <div className="px-6 pb-2">
