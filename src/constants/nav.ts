@@ -28,6 +28,7 @@ export const NAV_GROUPS = [
     label: "People",
     items: [
       { label: "Employees", href: "/dashboard/employees", icon: "Users" },
+      { label: "Content Types", href: "/dashboard/employees/content-types", icon: "LayoutTemplate" },
     ] as NavItem[],
   },
 ];

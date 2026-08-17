@@ -10,6 +10,7 @@ import {
   CalendarCheck,
   ClipboardList,
   Cpu,
+  LayoutTemplate,
   type LucideIcon,
 } from "lucide-react";
 
@@ -25,4 +26,5 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   CalendarCheck,
   ClipboardList,
   Cpu,
+  LayoutTemplate,
 };
