@@ -4,9 +4,10 @@ import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import {
-  CalendarCheck, Clock, CheckCircle2, Play, Loader2, ArrowRight, ClipboardList, CheckCircle
+  CalendarCheck, Clock, CheckCircle2, Play, Loader2, ArrowRight,
+  ClipboardList, CheckCircle, TrendingUp, Banknote, Target, BarChart3,
 } from "lucide-react";
-import { useMyTodayAttendance, useCheckIn, useCheckOut } from "@/hooks/queries/use-attendance";
+import { useTodayStatus, useCheckIn, useCheckOut } from "@/hooks/queries/use-users";
 import { useTasks, useUpdateTask, useCompleteTask } from "@/hooks/queries/use-tasks";
 import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
@@ -14,15 +15,45 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { TaskStatusBadge } from "@/components/shared/status-badges";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { TaskDetailDrawer } from "@/features/operations/task-detail-drawer";
+import { formatCurrency } from "@/lib/utils";
 import type { Task } from "@/types";
+
+// ── Stat Card ─────────────────────────────────────────────────────────────
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className={`flex items-start gap-3 rounded-2xl border p-4 ${accent ? "border-primary/30 bg-primary/5" : "border-border bg-muted/20"}`}>
+      <div className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${accent ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground"}`}>
+        <Icon className="size-4.5" />
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className={`text-xl font-black tabular ${accent ? "text-primary" : "text-foreground"}`}>{value}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  );
+}
 
 export function EmployeeDashboard() {
   const user = useAuthStore((s) => s.user);
   const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
 
   // Queries
-  const { data: attendance, isLoading: attendanceLoading } = useMyTodayAttendance();
+  const { data: todayStatus, isLoading: attendanceLoading } = useTodayStatus();
   const { data: tasksData, isLoading: tasksLoading } = useTasks({ pageNo: 1, showPerPage: 5 });
+  const { data: allTasksData } = useTasks({ pageNo: 1, showPerPage: 200 });
 
   // Mutations
   const checkInMutation = useCheckIn();
@@ -31,6 +62,18 @@ export function EmployeeDashboard() {
   const completeTask = useCompleteTask();
 
   const tasks = tasksData?.tasks ?? [];
+  const allTasks = allTasksData?.tasks ?? [];
+
+  // Derived stat values
+  const completedCount = allTasks.filter((t) => t.status === "COMPLETED").length;
+  const inProgressCount = allTasks.filter((t) => t.status === "IN_PROGRESS").length;
+  const pendingCount = allTasks.filter((t) => t.status === "PENDING").length;
+  const totalTasks = allTasks.length;
+  const completionPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+  const hourlyRate: number = todayStatus?.hourlyRate ?? 0;
+  const dailyPaySoFar: number = todayStatus?.estimatedPaySoFar ?? 0;
+  const hoursSoFar: number = todayStatus?.hoursSoFar ?? 0;
 
   const handleCheckIn = () => {
     checkInMutation.mutate(undefined, {
@@ -85,6 +128,49 @@ export function EmployeeDashboard() {
         </p>
       </div>
 
+      {/* ── Stats Row ── */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard
+          icon={Banknote}
+          label="Hourly rate"
+          value={hourlyRate > 0 ? formatCurrency(hourlyRate) : "—"}
+          sub="per hour"
+          accent
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Today's earnings"
+          value={dailyPaySoFar > 0 ? formatCurrency(dailyPaySoFar) : "—"}
+          sub={hoursSoFar > 0 ? `${hoursSoFar.toFixed(1)} hrs worked` : "Not checked in"}
+        />
+        <StatCard
+          icon={Target}
+          label="Tasks completed"
+          value={`${completedCount}/${totalTasks}`}
+          sub={`${completionPct}% done`}
+        />
+        <StatCard
+          icon={BarChart3}
+          label="Task breakdown"
+          value={`${inProgressCount} active`}
+          sub={`${pendingCount} pending · ${completedCount} done`}
+        />
+      </div>
+
+      {/* ── Task Progress Bar ── */}
+      {totalTasks > 0 && (
+        <div className="rounded-xl border border-border bg-muted/20 px-4 py-3 flex items-center gap-4">
+          <p className="text-xs font-medium text-muted-foreground shrink-0">Overall progress</p>
+          <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500"
+              style={{ width: `${completionPct}%` }}
+            />
+          </div>
+          <p className="text-xs font-bold text-primary tabular shrink-0">{completionPct}%</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* Attendance Card */}
         <Card className="md:col-span-1 shadow-sm border border-border">
@@ -111,11 +197,11 @@ export function EmployeeDashboard() {
                     <div>
                       <p className="text-xs text-muted-foreground">Current Status</p>
                       <p className="text-sm font-semibold">
-                        {!attendance?.checkInTime
+                {!(todayStatus?.checkedIn)
                           ? "Not Checked In"
-                          : !attendance?.checkOutTime
+                          : !(todayStatus?.checkedOut)
                           ? "Working (Checked In)"
-                          : "Finished (Checked Out)"}
+                          : "Finished (Checked Out)"}  
                       </p>
                     </div>
                   </div>
@@ -124,13 +210,13 @@ export function EmployeeDashboard() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Check-in:</span>
                       <span className="font-medium tabular">
-                        {attendance?.checkInTime ? format(parseISO(attendance.checkInTime), "hh:mm a") : "—"}
+                        {todayStatus?.checkIn ? format(parseISO(todayStatus.checkIn), "hh:mm a") : "—"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Check-out:</span>
                       <span className="font-medium tabular">
-                        {attendance?.checkOutTime ? format(parseISO(attendance.checkOutTime), "hh:mm a") : "—"}
+                        {todayStatus?.checkOut ? format(parseISO(todayStatus.checkOut), "hh:mm a") : "—"}
                       </span>
                     </div>
                   </div>
@@ -138,7 +224,7 @@ export function EmployeeDashboard() {
 
                 {/* Check In / Out Buttons */}
                 <div className="flex flex-col gap-2">
-                  {!attendance?.checkInTime ? (
+                {!todayStatus?.checkedIn ? (
                     <Button
                       size="lg"
                       onClick={handleCheckIn}
@@ -148,7 +234,7 @@ export function EmployeeDashboard() {
                       {checkInMutation.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
                       Check In Today
                     </Button>
-                  ) : !attendance?.checkOutTime ? (
+                  ) : !todayStatus?.checkedOut ? (
                     <Button
                       size="lg"
                       variant="destructive"
