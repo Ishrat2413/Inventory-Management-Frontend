@@ -18,6 +18,9 @@ import {
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
+  if (href === "/dashboard/employees") {
+    return pathname.startsWith(href) && !pathname.startsWith("/dashboard/employees/content-types");
+  }
   return pathname.startsWith(href);
 }
 

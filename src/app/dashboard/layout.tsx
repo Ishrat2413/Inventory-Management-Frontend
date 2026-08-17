@@ -14,6 +14,7 @@ const ADMIN_ONLY_ROUTES = [
   "/dashboard/categories",
   "/dashboard/vendors",
   "/dashboard/employees",
+  "/dashboard/employees/content-types",
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
