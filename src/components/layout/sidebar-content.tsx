@@ -119,7 +119,7 @@ export function SidebarContent({
         </span>
         {!collapsed && (
           <div>
-            <span className="text-base font-bold tracking-tight text-foreground">Dabang</span>
+            <span className="text-base font-bold tracking-tight text-foreground">Inventory Management</span>
             <p className="text-[10px] text-muted-foreground -mt-0.5">Inventory System</p>
           </div>
         )}
