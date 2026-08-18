@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import {
   Camera, LogIn, LogOut, Loader2, FileText, Upload, Trash2,
   ExternalLink, CheckCircle2, Clock, ShieldCheck, AlertTriangle,
-  Save, ChevronDown, ChevronUp,
+  Save, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Download,
+  BarChart2, CreditCard,
 } from "lucide-react";
 
 import { SectionHeader } from "@/components/shared/chart-card";
@@ -24,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/auth-store";
 import { useUpdateMe, useTodayStatus, useCheckIn, useCheckOut, useMyEarnings } from "@/hooks/queries/use-users";
 import { useMyDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/queries/use-documents";
-import { useMyRecords, useUpsertRecord } from "@/hooks/queries/use-content-types";
+import { useMyRecords, useUpsertRecord, useEmployeePerformance, useDownloadReport } from "@/hooks/queries/use-content-types";
 import { getApiErrorMessage } from "@/lib/api-client";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { EmployeeDocument } from "@/types/documents";
@@ -393,6 +394,17 @@ export default function ProfilePage() {
   const checkIn  = useCheckIn();
   const checkOut = useCheckOut();
 
+  // ── Performance & Reports (own account only — the backend rejects any
+  // other id for a non-admin caller, so there's no id to select here) ──────
+  const [perfYear, setPerfYear] = React.useState(new Date().getFullYear());
+  const [perfMonth, setPerfMonth] = React.useState(new Date().getMonth() + 1);
+  const { data: performance, isLoading: perfLoading } = useEmployeePerformance(
+    user?.role === "EMPLOYEE" ? (user?.id ?? null) : null,
+    perfYear,
+    perfMonth
+  );
+  const downloadReport = useDownloadReport();
+
   const [form, setForm] = React.useState({
     name:    user?.name    ?? "",
     phone:   user?.phone   ?? "",
@@ -515,6 +527,83 @@ export default function ProfilePage() {
                 <div className="rounded-xl border border-border p-4 bg-primary-soft text-primary">
                   <p className="text-xs font-semibold text-primary/85">Total Estimated Pay</p>
                   <p className="text-xl font-black mt-1 tabular">{formatCurrency(earnings.totalEstimatedPay)}</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Performance & Reports ── */}
+      {user.role === "EMPLOYEE" && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart2 className="size-4 text-primary" /> Performance &amp; Reports
+              </CardTitle>
+              <CardDescription>Your monthly performance summary — download it as a PDF report any time.</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="icon-sm" variant="outline" onClick={() => {
+                if (perfMonth === 1) { setPerfMonth(12); setPerfYear((y) => y - 1); }
+                else setPerfMonth((m) => m - 1);
+              }}><ChevronLeft className="size-3.5" /></Button>
+              <span className="text-sm font-medium min-w-28 text-center">
+                {new Date(perfYear, perfMonth - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+              </span>
+              <Button size="icon-sm" variant="outline" onClick={() => {
+                if (perfMonth === 12) { setPerfMonth(1); setPerfYear((y) => y + 1); }
+                else setPerfMonth((m) => m + 1);
+              }}><ChevronRight className="size-3.5" /></Button>
+              <Button
+                size="sm" variant="outline" className="text-xs h-8 ml-1"
+                disabled={downloadReport.isPending || !user?.id}
+                onClick={() => user?.id && downloadReport.mutate(
+                  { userId: user.id, year: perfYear, month: perfMonth },
+                  {
+                    onSuccess: () => toast.success("Report downloaded"),
+                    onError: (e) => toast.error("Download failed", { description: getApiErrorMessage(e) }),
+                  }
+                )}
+              >
+                {downloadReport.isPending ? <Loader2 className="size-3 animate-spin mr-1" /> : <Download className="size-3 mr-1" />}
+                Download PDF
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {perfLoading ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+              </div>
+            ) : !performance ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No performance data available for this period.</p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="rounded-xl border border-border p-4 bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Tasks Completed</p>
+                    <p className="text-xl font-bold mt-1 tabular">{performance.tasks.completed}/{performance.tasks.assigned}</p>
+                  </div>
+                  <div className="rounded-xl border border-border p-4 bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Completion Rate</p>
+                    <p className="text-xl font-bold mt-1 tabular">{performance.tasks.completionRate}%</p>
+                  </div>
+                  <div className="rounded-xl border border-border p-4 bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Days Worked</p>
+                    <p className="text-xl font-bold mt-1 tabular">{performance.attendance.daysWorked}</p>
+                  </div>
+                  <div className="rounded-xl border border-border p-4 bg-muted/20">
+                    <p className="text-xs text-muted-foreground">Total Hours</p>
+                    <p className="text-xl font-bold mt-1 tabular">{performance.attendance.totalHours}h</p>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-border bg-primary/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary/80 mb-3 flex items-center gap-1.5">
+                    <CreditCard className="size-3.5" /> Estimated Earnings for this period
+                  </p>
+                  <p className="text-lg font-bold text-primary tabular">{formatCurrency(performance.earnings.totalEstimatedPay)}</p>
                 </div>
               </div>
             )}
