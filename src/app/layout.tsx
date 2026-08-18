@@ -5,7 +5,7 @@ import { Providers } from "@/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dabang Admin — Sales & Inventory Dashboard",
+  title: "Inventory Management",
   description: "Premium enterprise admin dashboard for sales, inventory, operations and workforce management.",
 };
 
