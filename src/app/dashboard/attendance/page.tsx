@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CalendarCheck } from "lucide-react";
 import { AttendanceView } from "@/features/attendance/attendance-view";
 
-export const metadata: Metadata = { title: "Attendance — Dabang" };
+export const metadata: Metadata = { title: "Attendance — Inventory Management" };
 
 export default function AttendancePage() {
   return (
