@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Building2 } from "lucide-react";
 import { VendorsTable } from "@/features/vendors/vendors-table";
 
-export const metadata: Metadata = { title: "Vendors — Dabang" };
+export const metadata: Metadata = { title: "Vendors — Inventory Management" };
 
 export default function VendorsPage() {
   return (
