@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AuthShell } from "@/components/layout/auth-shell";
 import { ResetPasswordForm } from "@/features/auth/reset-password-form";
 
-export const metadata: Metadata = { title: "Reset password — Dabang Admin" };
+export const metadata: Metadata = { title: "Reset password — Inventory Management" };
 
 export default function ResetPasswordPage() {
   return (
