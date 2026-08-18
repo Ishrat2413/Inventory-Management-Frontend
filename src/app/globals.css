@@ -23,7 +23,7 @@
   --popover-foreground: #0A0F1E;
 
   /* Brand — deep violet-indigo */
-  --primary: #5C4EFF;
+  --primary: #4E42D9;
   --primary-foreground: #FFFFFF;
   --primary-soft: #EAE8FF;
 
@@ -54,7 +54,7 @@
   --info: #0EA5E9;
   --info-foreground: #FFFFFF;
 
-  --ring: #5C4EFF;
+  --ring: #4E42D9;
 
   --chart-1: #5C4EFF;
   --chart-2: #0EA5E9;
@@ -81,7 +81,7 @@
   --popover: #0F1629;
   --popover-foreground: #E8EDF8;
 
-  --primary: #7B6FFF;
+  --primary: #695ED9;
   --primary-foreground: #030510;
   --primary-soft: #1A1640;
 
@@ -111,7 +111,7 @@
   --info: #38BDF8;
   --info-foreground: #03080F;
 
-  --ring: #7B6FFF;
+  --ring: #695ED9;
 
   --chart-1: #7B6FFF;
   --chart-2: #38BDF8;
