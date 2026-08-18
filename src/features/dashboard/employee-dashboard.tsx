@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import {
   CalendarCheck, Clock, CheckCircle2, Play, Loader2, ArrowRight,
   ClipboardList, CheckCircle, TrendingUp, Banknote, Target, BarChart3,
+  Download,
 } from "lucide-react";
 import { useTodayStatus, useCheckIn, useCheckOut } from "@/hooks/queries/use-users";
 import { useTasks, useUpdateTask, useCompleteTask } from "@/hooks/queries/use-tasks";
+import { useDownloadReport } from "@/hooks/queries/use-content-types";
 import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -60,6 +62,19 @@ export function EmployeeDashboard() {
   const checkOutMutation = useCheckOut();
   const updateTask = useUpdateTask();
   const completeTask = useCompleteTask();
+  const downloadReport = useDownloadReport();
+
+  const now = new Date();
+  const handleDownloadReport = () => {
+    if (!user?.id) return;
+    downloadReport.mutate(
+      { userId: user.id, year: now.getFullYear(), month: now.getMonth() + 1 },
+      {
+        onSuccess: () => toast.success("Report downloaded"),
+        onError: (err) => toast.error("Download failed", { description: getApiErrorMessage(err) }),
+      }
+    );
+  };
 
   const tasks = tasksData?.tasks ?? [];
   const allTasks = allTasksData?.tasks ?? [];
@@ -119,13 +134,24 @@ export function EmployeeDashboard() {
       />
 
       {/* Hero Welcome banner */}
-      <div className="rounded-2xl border border-border bg-linear-to-r from-primary-soft to-accent-soft p-6 md:p-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Welcome back, {user?.name || user?.email || "Employee"}! 👋
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm max-w-xl">
-          Here is your work center. You can manage your today&apos;s attendance and view tasks assigned to you.
-        </p>
+      <div className="rounded-2xl border border-border bg-linear-to-r from-primary-soft to-accent-soft p-6 md:p-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Welcome back, {user?.name || user?.email || "Employee"}! 👋
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm max-w-xl">
+            Here is your work center. You can manage your today&apos;s attendance and view tasks assigned to you.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="bg-background shrink-0"
+          disabled={downloadReport.isPending || !user?.id}
+          onClick={handleDownloadReport}
+        >
+          {downloadReport.isPending ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+          Download My Report
+        </Button>
       </div>
 
       {/* ── Stats Row ── */}
